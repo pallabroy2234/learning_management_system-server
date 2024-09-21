@@ -4,8 +4,8 @@ import {ErrorHandler} from "../utils/ErrorHandler";
 import {CatchAsyncError} from "../middleware/catchAsyncError";
 import * as dotenv from 'dotenv';
 import {sendMail} from "../mails/sendMail";
-import {IActivationRequest, IRegistrationBody} from "../types/types";
-import {createActivationToken} from "../utils/jsonwebtoken";
+import {IActivationRequest, ILoginRequest, IRegistrationBody} from "../types/types";
+import {createActivationToken, createToken} from "../utils/jsonwebtoken";
 import logger from "../config/logger";
 import {verify} from "jsonwebtoken";
 
@@ -112,3 +112,44 @@ export const handleActivateUser = CatchAsyncError(async (req: Request, res: Resp
     }
 })
 
+
+/**
+ * @description         - Login user
+ * @path                - /api/v1/user/login
+ * @method              - POST
+ * @access              - Public
+ * @body                - {email: string, password: string}
+ *
+ * */
+
+export const handleLogin = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const {email, password} = req.body as ILoginRequest;
+
+        // check user Exists
+        const isExists = await User.findOne({email}).select("+password");
+        if (!isExists) {
+            return next(new ErrorHandler("Invalid credentials", 400))
+        }
+
+        const isPasswordMatch = await isExists.comparePassword(password);
+        if (!isPasswordMatch) {
+            return next(new ErrorHandler("Wrong password", 400))
+        }
+        //   generate token
+        const {accessToken} = createToken(isExists, res);
+
+        //  ! remove password from user object
+        // Destructure to remove the password from the user object
+        const {password: _, ...userWithoutPassword} = isExists.toObject();
+
+        return res.status(200).json({
+            success: true,
+            message: "Login successfully",
+            payload: userWithoutPassword,
+            accessToken,
+        })
+    } catch (err: any) {
+        return next(err)
+    }
+})

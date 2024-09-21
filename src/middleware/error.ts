@@ -53,5 +53,4 @@ export const errorMiddleware = (err: any, req: Request, res: Response, next: Nex
         success: false,
         message: err.message
     })
-
 }

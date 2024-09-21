@@ -34,3 +34,23 @@ export const userActiveValidator = [
     body("activation_token").notEmpty().withMessage("Activation token is required"),
     body("activation_code").notEmpty().withMessage("Enter your activation code")
 ]
+
+
+export const userLoginValidator = [
+    body("email")
+        .notEmpty()
+        .withMessage("Please enter your email")
+        .isEmail()
+        .withMessage("Please enter a valid email")
+        .custom((value) => {
+            if (!emailRegex.test(value)) {
+                throw new Error("Please enter a valid email");
+            }
+            return true;
+        }),
+    body("password")
+        .notEmpty()
+        .withMessage("Please enter your password")
+        .isLength({min: 6})
+        .withMessage("Password must be at least 6 characters long")
+]

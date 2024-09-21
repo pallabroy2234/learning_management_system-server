@@ -1,5 +1,6 @@
 import express, {Response, Request, NextFunction} from 'express';
 import cors from 'cors';
+import morgan from 'morgan';
 
 import dotenv from 'dotenv';
 import {errorMiddleware} from "./middleware/error";
@@ -14,6 +15,10 @@ export const app = express();
 // body parser
 app.use(express.json({limit: "50mb"}));
 app.use(express.urlencoded({extended: true}));
+
+
+// morgan
+app.use(morgan("dev"))
 
 // cors -> cross origin resource sharing
 app.use(cors({
