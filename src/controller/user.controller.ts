@@ -13,6 +13,7 @@ dotenv.config();
 
 /**
  * @description       - Create new user
+ * @path             - /api/v1/user/register
  * */
 
 // register user
@@ -28,13 +29,12 @@ export const handleRegisterUser = CatchAsyncError(async (req: Request, res: Resp
         //  activation token
         const activationToken = createActivationToken({name, email, password} as IRegistrationBody);
 
-        //  ejs html
-        // const html = await renderFile(join(__dirname, "../mails/activation.mail.ejs"), {userName:name, activationCode})
+
+        //   activation code to send email
         try {
             await sendMail({
                 email: email,
                 subject: "Active your account",
-                template: "activation.mail.ejs",
                 data: {name, activationCode: activationToken.activationCode}
             })
 

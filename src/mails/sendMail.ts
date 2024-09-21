@@ -8,10 +8,8 @@ dotenv.config();
 interface EmailOptions {
     email: string,
     subject: string,
-    template: string,
     data: { [key: string]: any }
 }
-
 
 export const sendMail = async (option: EmailOptions) => {
     const transporter: Transporter = createTransport({
@@ -25,10 +23,11 @@ export const sendMail = async (option: EmailOptions) => {
         }
     })
 
-    const {data, subject, template, email} = option
-    const templatePath = join(__dirname, `../mails`, template)
+    const {data, subject, email} = option
+    const templatePath = join(__dirname, "../mails/activationMail.ejs")
 
     const html = await renderFile(templatePath, {userName: data.name, activationCode: data.activationCode})
+
     const mailOptions = {
         from: process.env.SMTP_MAIL,
         to: email,
