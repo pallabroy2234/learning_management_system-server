@@ -30,4 +30,7 @@ export const userRegisterValidator = [
 ];
 
 
-
+export const userActiveValidator = [
+    body("activation_token").notEmpty().withMessage("Activation token is required"),
+    body("activation_code").notEmpty().withMessage("Enter your activation code")
+]
