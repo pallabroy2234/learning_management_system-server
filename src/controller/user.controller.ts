@@ -4,7 +4,7 @@ import {ErrorHandler} from "../utils/ErrorHandler";
 import {CatchAsyncError} from "../middleware/catchAsyncError";
 import * as dotenv from 'dotenv';
 import {sendMail} from "../mails/sendMail";
-import {IRegistrationBody} from "../types/types";
+import {IActivationRequest, IRegistrationBody} from "../types/types";
 import {createActivationToken} from "../utils/jsonwebtoken";
 import logger from "../config/logger";
 import {verify} from "jsonwebtoken";
@@ -15,6 +15,9 @@ dotenv.config();
 /**
  * @description       - Create new user
  * @path             - /api/v1/user/register
+ * @method            - POST
+ * @access            - Public
+ * @body             - {name: string, email: string, password: string}
  * */
 
 // register user
@@ -56,13 +59,13 @@ export const handleRegisterUser = CatchAsyncError(async (req: Request, res: Resp
 })
 
 
-// activation user REQUEST BODY
-
-export interface IActivationRequest {
-    activation_token: string
-    activation_code: string
-}
-
+/**
+ * @description       - Activate user
+ * @path             - /api/v1/user/activate-user
+ * @method            - POST
+ * @access            - Public
+ * @body             - {activation_token: string, activation_code: string}
+ * */
 export const handleActivateUser = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const {activation_token, activation_code} = req.body as IActivationRequest;

@@ -4,3 +4,8 @@ export interface IRegistrationBody {
     password: string
     avatar?: string
 }
+
+export interface IActivationRequest {
+    activation_token: string
+    activation_code: string
+}
