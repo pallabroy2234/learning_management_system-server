@@ -39,9 +39,15 @@ export const errorMiddleware = (err: any, req: Request, res: Response, next: Nex
 
     // !  jwt expired error
     if (err.name === "TokenExpiredError") {
-        const message = "Json Web Token is expired. Try again!!!";
+        const message = "Activation code has been expired. Try again!!!";
         err = new ErrorHandler(message, 400);
     }
+
+    // If none of the above matches, provide a generic error message
+    if (err.statusCode === 500) {
+        err.message = "Something went wrong. Please try again later.";
+    }
+
     logger.error(err.message)
     return res.status(err.statusCode).json({
         success: false,
