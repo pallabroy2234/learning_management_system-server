@@ -157,9 +157,10 @@ export const handleLogin = CatchAsyncError(async (req: Request, res: Response, n
 
 /**
  * @description         - Logout user
+ * @path                - /api/v1/user/logout
+ * @method              - GET
+ * @access              - Private
  * */
-
-
 export const handleLogout = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         res.cookie("access_token", "", {maxAge: 1});
