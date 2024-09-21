@@ -29,7 +29,7 @@ export const handleRegisterUser = CatchAsyncError(async (req: Request, res: Resp
         const isEmailExists = await User.findOne({email});
 
         if (isEmailExists) {
-            return next(new ErrorHandler("Email already exists", 400))
+            return next(new ErrorHandler("Email already exists", 409))
         }
         //  activation token
         const activationToken = createActivationToken({name, email, password} as IRegistrationBody);
@@ -88,7 +88,7 @@ export const handleActivateUser = CatchAsyncError(async (req: Request, res: Resp
         const isUserExists = await User.findOne({email});
 
         if (isUserExists) {
-            return next(new ErrorHandler("Email already exists", 400))
+            return next(new ErrorHandler("Email already exists", 409))
         }
 
         //   if user not exists then create new user
