@@ -153,3 +153,24 @@ export const handleLogin = CatchAsyncError(async (req: Request, res: Response, n
         return next(err)
     }
 })
+
+
+/**
+ * @description         - Logout user
+ * */
+
+
+export const handleLogout = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        res.cookie("access_token", "", {maxAge: 1});
+        res.cookie("refresh_token", "", {maxAge: 1});
+
+
+        return res.status(200).json({
+            success: true,
+            message: "Logout successfully"
+        })
+    } catch (err: any) {
+        return next(err)
+    }
+})

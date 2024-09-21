@@ -1,5 +1,5 @@
 import express from "express";
-import {handleActivateUser, handleLogin, handleRegisterUser} from "../controller/user.controller";
+import {handleActivateUser, handleLogin, handleLogout, handleRegisterUser} from "../controller/user.controller";
 import {userActiveValidator, userLoginValidator, userRegisterValidator} from "../validator/user.validator";
 import {runValidation} from "../validator";
 
@@ -37,3 +37,16 @@ userRouter.post("/activate-user", userActiveValidator, runValidation(422), handl
  * */
 
 userRouter.post("/login", userLoginValidator, runValidation(422), handleLogin)
+
+
+
+/**
+ * @description         - User logout route
+ * @path                - /api/v1/user/logout
+ * @method              - GET
+ * @access              - Private
+ * @handler             - handleLogout
+ *
+ * */
+
+userRouter.get("/logout", handleLogout)
