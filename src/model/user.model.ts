@@ -1,13 +1,19 @@
 import {model, Schema} from "mongoose";
 import bcrypt from "bcryptjs";
+import * as dotenv from "dotenv";
+import {Secret, sign} from "jsonwebtoken";
+
 
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+dotenv.config();
 
 export interface IUser extends Document {
     name: string,
     email: string,
     password: string,
+
     isModified(path: string): boolean;
+
     avatar: {
         public_id: string,
         url: string
@@ -16,7 +22,8 @@ export interface IUser extends Document {
     isVerified: boolean,
     courses: Array<{ courseId: string }>
     comparePassword: (password: string) => Promise<boolean>
-
+    SignAccessToken: () => string
+    SignRefreshToken: () => string
 }
 
 
@@ -72,6 +79,18 @@ userSchema.pre<IUser>("save", async function (next) {
     this.password = await bcrypt.hash(this.password, 10);
     next();
 });
+
+// Sign access token
+userSchema.methods.SignAccessToken = function () {
+    const secret = process.env.JWT_ACCESS_TOKEN_SECRET;
+    return sign({id: this._id}, secret || "");
+}
+
+//  Sign refresh token
+userSchema.methods.SignRefreshToken = function () {
+    const secret = process.env.JWT_REFRESH_TOKEN_SECRET;
+    return sign({id: this._id}, secret || "");
+}
 
 // compare user password
 
