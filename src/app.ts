@@ -4,6 +4,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import {errorMiddleware} from "./middleware/error";
 
+// import routes
+import {userRouter} from "./route/user.route";
+
 dotenv.config();
 export const app = express();
 
@@ -16,6 +19,10 @@ app.use(express.urlencoded({extended: true}));
 app.use(cors({
     origin: [process.env.ORIGIN as string],
 }))
+
+// routes
+app.use("/api/v1/user", userRouter)
+
 
 // testing api
 app.get("/test", (req: Request, res: Response) => {

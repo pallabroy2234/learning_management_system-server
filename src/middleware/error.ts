@@ -1,5 +1,6 @@
 import {ErrorHandler} from "../utils/ErrorHandler";
 import {NextFunction, Response, Request} from "express";
+import logger from "../config/logger";
 
 
 export const errorMiddleware = (err: any, req: Request, res: Response, next: NextFunction) => {
@@ -41,7 +42,7 @@ export const errorMiddleware = (err: any, req: Request, res: Response, next: Nex
         const message = "Json Web Token is expired. Try again!!!";
         err = new ErrorHandler(message, 400);
     }
-
+    logger.error(err.message)
     return res.status(err.statusCode).json({
         success: false,
         message: err.message
