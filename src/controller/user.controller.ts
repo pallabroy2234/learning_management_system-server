@@ -180,7 +180,7 @@ export const handleLogout = CatchAsyncError(async (req: Request, res: Response, 
         const keyExists = await redisCache.exists(key);
 
         // invalidate the user session
-        if (keyExists === 0) {
+        if (keyExists === 1) {
             await redisCache.del(key);
         }
 
