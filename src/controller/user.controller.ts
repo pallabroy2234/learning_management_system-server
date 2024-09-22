@@ -8,6 +8,7 @@ import {IActivationRequest, ILoginRequest, IRegistrationBody} from "../types/typ
 import {createActivationToken, createToken} from "../utils/jsonwebtoken";
 import logger from "../config/logger";
 import {verify} from "jsonwebtoken";
+import {redisCache} from "../config/redis";
 
 dotenv.config();
 
@@ -142,6 +143,12 @@ export const handleLogin = CatchAsyncError(async (req: Request, res: Response, n
         //  ! remove password from user object
         // Destructure to remove the password from the user object
         const {password: _, ...userWithoutPassword} = isExists.toObject();
+
+        const key = `user:${userWithoutPassword._id}`;
+        const keyExists = await redisCache.exists(key);
+        if (!keyExists) {
+            await redisCache.set(key, JSON.stringify(userWithoutPassword));
+        }
 
         return res.status(200).json({
             success: true,
