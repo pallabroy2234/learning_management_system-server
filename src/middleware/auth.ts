@@ -5,6 +5,11 @@ import {JwtPayload, verify} from "jsonwebtoken";
 import {redisCache} from "../config/redis";
 
 
+/**
+ * @description       - Check if user is authenticated
+ * @middleware         - isAuthenticated
+ * @access            - Private
+ * */
 export const isAuthenticated = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
 
@@ -38,3 +43,22 @@ export const isAuthenticated = CatchAsyncError(async (req: Request, res: Respons
         return next(err)
     }
 })
+
+
+/**
+ * @description       - Check if user is logged out
+ * @middleware         - isLoggedOut
+ * @access            - Public
+ * */
+export const isLoggedOut = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const access_token = req.cookies.access_token;
+
+        if (access_token) {
+            return next(new ErrorHandler("You are already logged in", 400))
+        }
+        next();
+    } catch (error) {
+        next(error);
+    }
+};
