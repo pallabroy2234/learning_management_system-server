@@ -2,7 +2,7 @@ import express from "express";
 import {handleActivateUser, handleLogin, handleLogout, handleRegisterUser} from "../controller/user.controller";
 import {userActiveValidator, userLoginValidator, userRegisterValidator} from "../validator/user.validator";
 import {runValidation} from "../validator";
-import {authorizeRole, isAuthenticated, isLoggedOut} from "../middleware/auth";
+import {isAuthenticated, isLoggedOut} from "../middleware/auth";
 
 export const userRouter = express.Router();
 

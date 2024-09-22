@@ -1,9 +1,7 @@
 import {createTransport, Transporter} from "nodemailer";
 import {join} from "path";
 import {renderFile} from "ejs";
-import * as dotenv from "dotenv";
-
-dotenv.config();
+import {smtp_host, smtp_mail, smtp_password, smtp_port, smtp_service} from "../secret/secret";
 
 interface EmailOptions {
     email: string,
@@ -13,13 +11,13 @@ interface EmailOptions {
 
 export const sendMail = async (option: EmailOptions) => {
     const transporter: Transporter = createTransport({
-        host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT || "587"),
-        service: process.env.SMTP_SERVICE,
+        host: smtp_host,
+        port: Number(smtp_port || "587"),
+        service: smtp_service,
         // secure: false,
         auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASSWORD
+            user: smtp_mail,
+            pass: smtp_password
         }
     })
 
@@ -29,7 +27,7 @@ export const sendMail = async (option: EmailOptions) => {
     const html = await renderFile(templatePath, {userName: data.name, activationCode: data.activationCode})
 
     const mailOptions = {
-        from: process.env.SMTP_MAIL,
+        from: smtp_mail,
         to: email,
         subject,
         html

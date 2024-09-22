@@ -3,6 +3,7 @@ import {CatchAsyncError} from "./catchAsyncError";
 import {ErrorHandler} from "../utils/ErrorHandler";
 import {JwtPayload, verify} from "jsonwebtoken";
 import {redisCache} from "../config/redis";
+import {jwt_access_token_secret} from "../secret/secret";
 
 
 /**
@@ -19,7 +20,7 @@ export const isAuthenticated = CatchAsyncError(async (req: Request, res: Respons
             return next(new ErrorHandler("Please login first", 401));
         }
 
-        const decode = verify(access_token, process.env.JWT_ACCESS_TOKEN_SECRET as string) as JwtPayload;
+        const decode = verify(access_token, jwt_access_token_secret as string) as JwtPayload;
 
         if (!decode) {
             return next(new ErrorHandler("Session expired. Please log in again.", 401));

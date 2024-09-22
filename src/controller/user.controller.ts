@@ -2,15 +2,14 @@ import {Request, Response, NextFunction} from "express";
 import {IUser, User} from "../model/user.model";
 import {ErrorHandler} from "../utils/ErrorHandler";
 import {CatchAsyncError} from "../middleware/catchAsyncError";
-import * as dotenv from 'dotenv';
 import {sendMail} from "../mails/sendMail";
 import {IActivationRequest, ILoginRequest, IRegistrationBody} from "../types/types";
 import {createActivationToken, createToken} from "../utils/jsonwebtoken";
 import logger from "../config/logger";
 import {verify} from "jsonwebtoken";
 import {redisCache} from "../config/redis";
+import {jwt_activation_secret} from "../secret/secret";
 
-dotenv.config();
 
 
 /**
@@ -72,7 +71,7 @@ export const handleActivateUser = CatchAsyncError(async (req: Request, res: Resp
         const {activation_token, activation_code} = req.body as IActivationRequest;
 
         //   verify activation token
-        const newUser = verify(activation_token, process.env.JWT_ACTIVATION_SECRET as string) as {
+        const newUser = verify(activation_token, jwt_activation_secret as string) as {
             user: IUser;
             activationCode: string;
         };

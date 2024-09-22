@@ -1,11 +1,10 @@
 import {IRegistrationBody} from "../types/types";
 import {Secret, sign} from "jsonwebtoken";
-import * as dotenv from 'dotenv';
 import {Response} from "express";
 import {IUser} from "../model/user.model";
+import {jwt_access_token_expire, jwt_activation_secret, jwt_refresh_token_expire, node_env} from "../secret/secret";
 
 
-dotenv.config();
 
 interface IActivationToken {
     token: string,
@@ -17,7 +16,7 @@ interface IActivationToken {
 export const createActivationToken = (user: IRegistrationBody): IActivationToken => {
     const activationCode = Math.floor(1000 + Math.random() * 9000).toString();
 
-    const token = sign({user, activationCode}, process.env.JWT_ACTIVATION_SECRET as Secret, {expiresIn: "2m"})
+    const token = sign({user, activationCode}, jwt_activation_secret as Secret, {expiresIn: "2m"})
     return {token, activationCode}
 }
 
@@ -36,9 +35,8 @@ export const createToken = (user: IUser, res: Response) => {
     const refreshToken = user.SignRefreshToken();
 
 
-    // const accessTokenExpiresIn = parseExpiryTime(process.env.JWT_ACCESS_TOKEN_EXPIRE || "5m");
-    const accessTokenExpiresIn = parseInt(process.env.JWT_ACCESS_TOKEN_EXPIRE || "300")
-    const refreshTokenExpiresIn = parseInt(process.env.JWT_REFRESH_TOKEN_EXPIRE || "1200")
+    const accessTokenExpiresIn = parseInt(jwt_access_token_expire || "300")
+    const refreshTokenExpiresIn = parseInt(jwt_refresh_token_expire || "1200")
 
 
     // Access token options
@@ -58,7 +56,7 @@ export const createToken = (user: IUser, res: Response) => {
     };
 
     // Only set secure flag in production
-    if (process.env.NODE_ENV === "production") {
+    if (node_env === "production") {
         accessTokenOptions.sucre = true;
     }
 

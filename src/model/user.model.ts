@@ -1,11 +1,11 @@
 import {model, ObjectId, Schema} from "mongoose";
 import bcrypt from "bcryptjs";
-import * as dotenv from "dotenv";
 import {sign} from "jsonwebtoken";
+import {jwt_access_token_secret, jwt_refresh_token_secret} from "../secret/secret";
 
 
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-dotenv.config();
+
 
 export interface IUser extends Document {
     _id: ObjectId,
@@ -83,7 +83,7 @@ userSchema.pre<IUser>("save", async function (next) {
 
 // Sign access token
 userSchema.methods.SignAccessToken = function () {
-    const secret = process.env.JWT_ACCESS_TOKEN_SECRET;
+    const secret = jwt_access_token_secret as string;
     return sign({_id: this._id}, secret || "", {
         expiresIn: "1m"
     });
@@ -91,7 +91,7 @@ userSchema.methods.SignAccessToken = function () {
 
 //  Sign refresh token
 userSchema.methods.SignRefreshToken = function () {
-    const secret = process.env.JWT_REFRESH_TOKEN_SECRET;
+    const secret = jwt_refresh_token_secret as string;
     return sign({_id: this._id}, secret || "", {
         expiresIn: "3d"
     });

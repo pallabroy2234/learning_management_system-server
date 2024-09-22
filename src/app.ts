@@ -1,15 +1,15 @@
 import express, {Response, Request, NextFunction} from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
-
-import dotenv from 'dotenv';
 import {errorMiddleware} from "./middleware/error";
+import cookieParser from "cookie-parser";
+import {origin} from "./secret/secret";
+
 
 // import routes
 import {userRouter} from "./route/user.route";
-import cookieParser from "cookie-parser";
 
-dotenv.config();
+
 export const app = express();
 
 
@@ -25,7 +25,7 @@ app.use(morgan("dev"))
 
 // cors -> cross origin resource sharing
 app.use(cors({
-    origin: [process.env.ORIGIN as string],
+    origin: [origin as string],
 }))
 
 // routes

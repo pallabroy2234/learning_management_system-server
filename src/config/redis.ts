@@ -1,10 +1,8 @@
 import Redis from "ioredis"
 import logger from "./logger";
-import dotenv from "dotenv";
+import {redis_url} from "../secret/secret";
 
-dotenv.config();
-
-export const redisCache = new Redis(process.env.REDIS_URL as string, {
+export const redisCache = new Redis(redis_url as string, {
     tls: {}, // Ensure TLS is used for security
     retryStrategy: (times) => {
         const delay = Math.min(times * 50, 2000); // Exponential backoff strategy

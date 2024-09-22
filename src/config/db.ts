@@ -1,12 +1,10 @@
-import dotenv from "dotenv";
-
-dotenv.config();
 import mongoose from "mongoose";
 import logger from "./logger";
+import {db_name, db_uri} from "../secret/secret";
 
 
-const dbUri = process.env.DB_URI as string || "";
-const dbName = process.env.DB_NAME as string || "";
+const dbUri = db_uri as string || "";
+const dbName = db_name as string || "";
 
 
 export const connectDB = async () => {
