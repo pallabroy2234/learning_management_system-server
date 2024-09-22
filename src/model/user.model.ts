@@ -44,7 +44,8 @@ const userSchema: Schema<IUser> = new Schema({
     },
     password: {
         type: String,
-        required: [true, 'Please enter your password'],
+        // ! not required for social login
+        // required: [true, 'Please enter your password'],
         minlength: [6, 'Your password must be at least 6 characters'],
         select: false,
         // set: (v: any) => bcrypt.hashSync(v, bcrypt.genSaltSync(10)),
