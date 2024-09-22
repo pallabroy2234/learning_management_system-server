@@ -85,7 +85,7 @@ userSchema.pre<IUser>("save", async function (next) {
 userSchema.methods.SignAccessToken = function () {
     const secret = jwt_access_token_secret as string;
     return sign({_id: this._id}, secret || "", {
-        expiresIn: "1m"
+        expiresIn: "15m"
     });
 }
 

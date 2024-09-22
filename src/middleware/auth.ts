@@ -5,6 +5,7 @@ import {JwtPayload, verify} from "jsonwebtoken";
 import {redisCache} from "../config/redis";
 import {jwt_access_token_secret} from "../secret/secret";
 import {handleUpdateAccessToken} from "../controller/user.controller";
+import {User} from "../model/user.model";
 
 
 /**
@@ -27,16 +28,17 @@ export const isAuthenticated = CatchAsyncError(async (req: Request, res: Respons
             return next(new ErrorHandler("Session expired. Please log in again.", 401));
         }
 
-        const key = `user:${(decode as JwtPayload)._id}`;
+        // const key = `user:${(decode as JwtPayload)._id}`;
+        // const user = await redisCache.get(key);
 
-        const user = await redisCache.get(key);
+        const user = await User.findOne({_id: decode._id})
 
         if (!user) {
             return next(new ErrorHandler("User not found", 404));
         }
 
         // set user in req object
-        req.user = JSON.parse(user);
+        req.user = user
         next()
     } catch (err: any) {
         if (err.name === "TokenExpiredError") {
@@ -79,10 +81,6 @@ export const authorizeRole = (...roles: string[]) => {
         next();
     }
 }
-
-
-
-
 
 
 // export const isAuthenticated = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {

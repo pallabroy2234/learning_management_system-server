@@ -233,6 +233,46 @@ export const handleUpdateAccessToken = CatchAsyncError(async (req: Request, res:
 })
 
 
+/**
+ * @description         - Get user info
+ * @path                - /api/v1/user/user-info
+ * @method              - GET
+ * @access              - Private
+ * */
+
+export const handleGetUserInfo = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const id = req.user?._id || "";
+        const key = `user:${id}`;
+
+        const keyExists = await redisCache.exists(key);
+
+        let user;
+
+        if (keyExists === 1) {
+            const data = await redisCache.get(key);
+            user = JSON.parse(data!);
+        } else {
+            user = await User.findOne({_id: id})
+            if (!user) {
+                return next(new ErrorHandler("User not found", 404))
+            }
+            await redisCache.set(key, JSON.stringify(user));
+        }
+        return res.status(200).json({
+            success: true,
+            message: "User info fetched successfully",
+            payload: user
+        })
+    } catch (err: any) {
+        logger.error(`handleGetUserInfo:${err.message}`)
+        return next(err)
+    }
+
+})
+
+
+
 
 
 

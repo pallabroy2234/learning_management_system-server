@@ -1,6 +1,6 @@
 import express from "express";
 import {
-    handleActivateUser,
+    handleActivateUser, handleGetUserInfo,
     handleLogin,
     handleLogout,
     handleRegisterUser,
@@ -68,3 +68,13 @@ userRouter.get("/logout", isAuthenticated, handleLogout)
  * */
 
 userRouter.get("/refresh", handleUpdateAccessToken)
+
+
+/**
+ * @description         - Get user info
+ * @path                - /api/v1/user/user-info
+ * @method              - GET
+ * @access              - Private
+ * */
+
+userRouter.get("/user-info", isAuthenticated, handleGetUserInfo)
