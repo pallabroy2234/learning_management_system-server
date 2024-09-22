@@ -2,6 +2,7 @@ import express from "express";
 import {handleActivateUser, handleLogin, handleLogout, handleRegisterUser} from "../controller/user.controller";
 import {userActiveValidator, userLoginValidator, userRegisterValidator} from "../validator/user.validator";
 import {runValidation} from "../validator";
+import {isAuthenticated} from "../middleware/auth";
 
 export const userRouter = express.Router();
 
@@ -39,7 +40,6 @@ userRouter.post("/activate-user", userActiveValidator, runValidation(422), handl
 userRouter.post("/login", userLoginValidator, runValidation(422), handleLogin)
 
 
-
 /**
  * @description         - User logout route
  * @path                - /api/v1/user/logout
@@ -49,4 +49,4 @@ userRouter.post("/login", userLoginValidator, runValidation(422), handleLogin)
  *
  * */
 
-userRouter.get("/logout", handleLogout)
+userRouter.get("/logout", isAuthenticated, handleLogout)

@@ -1,3 +1,6 @@
+import {IUser} from "../model/user.model";
+import {Request} from "express";
+
 export interface IRegistrationBody {
     name: string,
     email: string,
@@ -13,4 +16,15 @@ export interface IActivationRequest {
 export interface ILoginRequest {
     email: string
     password: string
+}
+
+
+declare global {
+    namespace Express {
+        interface Request {
+            user?: IUser
+            _id?: string
+            role?: string
+        }
+    }
 }

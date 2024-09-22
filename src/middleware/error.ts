@@ -48,6 +48,8 @@ export const errorMiddleware = (err: any, req: Request, res: Response, next: Nex
         err.message = "Something went wrong. Please try again later.";
     }
 
+
+
     logger.error(err.message)
     return res.status(err.statusCode).json({
         success: false,

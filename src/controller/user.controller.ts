@@ -137,8 +137,9 @@ export const handleLogin = CatchAsyncError(async (req: Request, res: Response, n
         if (!isPasswordMatch) {
             return next(new ErrorHandler("Wrong password", 400))
         }
-        //   generate token
+        // generate token
         const {accessToken} = createToken(isExists, res);
+
 
         //  ! remove password from user object
         // Destructure to remove the password from the user object
@@ -173,12 +174,24 @@ export const handleLogout = CatchAsyncError(async (req: Request, res: Response, 
         res.cookie("access_token", "", {maxAge: 1});
         res.cookie("refresh_token", "", {maxAge: 1});
 
+        const userId = req.user?._id || ""
+        const key = `user:${userId}`;
+
+        const keyExists = await redisCache.exists(key);
+
+        // invalidate the user session
+        if (keyExists === 0) {
+            await redisCache.del(key);
+        }
+
 
         return res.status(200).json({
             success: true,
             message: "Logout successfully"
         })
     } catch (err: any) {
+
+        console.log(err)
         return next(err)
     }
 })
