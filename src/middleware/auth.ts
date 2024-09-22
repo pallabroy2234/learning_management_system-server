@@ -62,3 +62,18 @@ export const isLoggedOut = async (req: Request, res: Response, next: NextFunctio
         next(error);
     }
 };
+
+/**
+ * @description       - Check if user is authorized
+ * @middleware         - authorizeRole
+ * @access            - Private
+ * @middleware         - authorizeRole
+ * */
+export const authorizeRole = (...roles: string[]) => {
+    return (req: Request, res: Response, next: NextFunction) => {
+        if (!roles.includes(req.user?.role || "")) {
+            return next(new ErrorHandler(`Forbidden. Only ${roles} can access this route`, 403))
+        }
+        next();
+    }
+}
