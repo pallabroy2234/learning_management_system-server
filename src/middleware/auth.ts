@@ -4,6 +4,7 @@ import {ErrorHandler} from "../utils/ErrorHandler";
 import {JwtPayload, verify} from "jsonwebtoken";
 import {redisCache} from "../config/redis";
 import {jwt_access_token_secret} from "../secret/secret";
+import {handleUpdateAccessToken} from "../controller/user.controller";
 
 
 /**
@@ -78,3 +79,51 @@ export const authorizeRole = (...roles: string[]) => {
         next();
     }
 }
+
+
+
+
+
+
+// export const isAuthenticated = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         // Extract access and refresh tokens from cookies
+//         const access_token = req.cookies.access_token;
+//         const refresh_token = req.cookies.refresh_token;
+//
+//         if (!access_token) {
+//             return next(new ErrorHandler("Please login first", 401));
+//         }
+//
+//         let decoded: JwtPayload | null = null;
+//
+//         try {
+//             // Try to verify the access token
+//             decoded = verify(access_token, jwt_access_token_secret as string) as JwtPayload;
+//         } catch (err: any) {
+//             // Handle expired access token scenario
+//             if (err.name === "TokenExpiredError" && refresh_token) {
+//                 // If access token is expired but refresh token exists, try to refresh the access token
+//                 return  handleUpdateAccessToken(req, res, next);
+//             } else {
+//                 return next(new ErrorHandler("Session expired. Please log in again.", 401));
+//             }
+//         }
+//
+//         // If the access token is valid, continue
+//         if (decoded) {
+//             const key = `user:${decoded._id}`;
+//             const user = await redisCache.get(key);
+//
+//             if (!user) {
+//                 return next(new ErrorHandler("User not found", 404));
+//             }
+//
+//             // Set the user object in the request
+//             req.user = JSON.parse(user);
+//             return next();
+//         }
+//     } catch (err: any) {
+//         return next(err);
+//     }
+// });

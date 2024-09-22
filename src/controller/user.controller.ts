@@ -6,10 +6,9 @@ import {sendMail} from "../mails/sendMail";
 import {IActivationRequest, ILoginRequest, IRegistrationBody} from "../types/types";
 import {createActivationToken, createToken} from "../utils/jsonwebtoken";
 import logger from "../config/logger";
-import {verify} from "jsonwebtoken";
+import {JwtPayload, verify} from "jsonwebtoken";
 import {redisCache} from "../config/redis";
-import {jwt_activation_secret} from "../secret/secret";
-
+import {jwt_activation_secret, jwt_refresh_token_secret} from "../secret/secret";
 
 
 /**
@@ -183,22 +182,55 @@ export const handleLogout = CatchAsyncError(async (req: Request, res: Response, 
             await redisCache.del(key);
         }
 
-
         return res.status(200).json({
             success: true,
             message: "Logout successfully"
         })
     } catch (err: any) {
-
-        console.log(err)
+        logger.error(`handleLogout:${err.message}`)
         return next(err)
     }
 })
 
 
+/**
+ * @description         - Refresh access token
+ * @path                - /api/v1/user/refresh
+ * @method              - GET
+ * @access              - Private
+ *
+ * */
+export const handleUpdateAccessToken = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const {refresh_token} = req.cookies;
 
+        if (!refresh_token) {
+            return next(new ErrorHandler("Please login first", 401))
+        }
 
+        const decoded = verify(refresh_token, jwt_refresh_token_secret as string) as JwtPayload;
+        if (!decoded) {
+            return next(new ErrorHandler("Invalid token", 400))
+        }
 
+        const user = await User.findOne({_id: decoded._id});
+        if (!user) {
+            return next(new ErrorHandler("User not found", 404))
+        }
+
+        // generate new access token
+        const {accessToken} = createToken(user, res)
+
+        return res.status(200).json({
+            success: true,
+            message: "Access token updated successfully",
+            payload: accessToken
+        })
+    } catch (err: any) {
+        logger.error(`handleUpdateAccessToken:${err.message}`)
+        return next(err)
+    }
+})
 
 
 

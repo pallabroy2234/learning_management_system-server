@@ -1,5 +1,11 @@
 import express from "express";
-import {handleActivateUser, handleLogin, handleLogout, handleRegisterUser} from "../controller/user.controller";
+import {
+    handleActivateUser,
+    handleLogin,
+    handleLogout,
+    handleRegisterUser,
+    handleUpdateAccessToken
+} from "../controller/user.controller";
 import {userActiveValidator, userLoginValidator, userRegisterValidator} from "../validator/user.validator";
 import {runValidation} from "../validator";
 import {isAuthenticated, isLoggedOut} from "../middleware/auth";
@@ -50,3 +56,15 @@ userRouter.post("/login", userLoginValidator, runValidation(422), isLoggedOut, h
  * */
 
 userRouter.get("/logout", isAuthenticated, handleLogout)
+
+
+/**
+ * @description         - Refresh access token route
+ * @path                - /api/v1/user/refresh
+ * @method              - GET
+ * @access              - Private
+ * @handler             - handleUpdateAccessToken
+ *
+ * */
+
+userRouter.get("/refresh", handleUpdateAccessToken)
