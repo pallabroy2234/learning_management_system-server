@@ -8,7 +8,7 @@ const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 
 export interface IUser extends Document {
-    _id: ObjectId,
+    _id: string,
     name: string,
     email: string,
     password: string,

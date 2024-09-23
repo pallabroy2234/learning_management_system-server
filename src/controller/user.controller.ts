@@ -3,7 +3,7 @@ import {IUser, User} from "../model/user.model";
 import {ErrorHandler} from "../utils/ErrorHandler";
 import {CatchAsyncError} from "../middleware/catchAsyncError";
 import {sendMail} from "../mails/sendMail";
-import {IActivationRequest, ILoginRequest, IRegistrationBody} from "../types/types";
+import {IActivationRequest, ILoginRequest, IRegistrationBody, IUpdateUserInfo} from "../types/types";
 import {createActivationToken, createToken} from "../utils/jsonwebtoken";
 import logger from "../config/logger";
 import {JwtPayload, verify} from "jsonwebtoken";
@@ -276,5 +276,60 @@ export const handleGetUserInfo = CatchAsyncError(async (req: Request, res: Respo
 })
 
 
+/**
+ * @description         - Update user info
+ * @path                - /api/v1/user/update-info
+ * @method              - PUT
+ * @access              - Private
+ * @body                - {name: string, email: string}
+ * */
+export const handleUpdateUserInfo = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const allowedField: string[] = ["name", "email"];
+        const id = (req.user as IUser)._id
 
+        const isUserExists = await User.findById(id);
+
+        if (!isUserExists) {
+            return next(new ErrorHandler("User not found", 404))
+        }
+
+        let updates: Record<string, string> = {};
+
+        for (let key in req.body) {
+            if (allowedField.includes(key)) {
+                updates[key as keyof IUpdateUserInfo] = req.body[key];
+            }
+        }
+
+
+        // Check if updates object is empty
+        if (Object.keys(updates).length === 0) {
+            return next(new ErrorHandler("No fields to update", 400))
+        }
+
+
+        //  check email already exists
+        if (updates.email) {
+            const isEmailExists = await User.findOne({email: updates.email});
+            if (isEmailExists) {
+                return next(new ErrorHandler("Email already exists", 409))
+            }
+        }
+
+        const updateUserInfo = await User.findByIdAndUpdate(id, updates, {new: true})
+
+        // cache updated
+        const cacheKey = `user:${id}`;
+        await redisCache.set(cacheKey, JSON.stringify(updateUserInfo));
+
+        return res.status(200).json({
+            success: true,
+            message: "Updated successfully",
+        })
+    } catch (err: any) {
+        logger.error(`handleUpdateUserInfo:${err.message}`)
+        return next(err)
+    }
+})
 

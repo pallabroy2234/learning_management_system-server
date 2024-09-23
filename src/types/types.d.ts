@@ -18,6 +18,11 @@ export interface ILoginRequest {
     password: string
 }
 
+export interface IUpdateUserInfo {
+    name?: string,
+    email?: string,
+}
+
 
 declare global {
     namespace Express {

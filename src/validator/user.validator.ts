@@ -54,3 +54,18 @@ export const userLoginValidator = [
         .isLength({min: 6})
         .withMessage("Password must be at least 6 characters long")
 ]
+
+
+export const updateUserInfoValidator = [
+    body("name").optional().isString().withMessage("Name must be a string"),
+    body("email")
+        .optional()
+        .isEmail()
+        .withMessage("Please enter a valid email")
+        .custom((value) => {
+            if (!emailRegex.test(value)) {
+                throw new Error("Please enter a valid email");
+            }
+            return true;
+        }),
+]
