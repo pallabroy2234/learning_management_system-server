@@ -126,7 +126,10 @@ export const handleLogin = CatchAsyncError(async (req: Request, res: Response, n
         const {email, password} = req.body as ILoginRequest;
 
         // check user Exists
-        const isExists = await User.findOne({email}).select("+password");
+        const isExists = await User.findOne({
+            $and: [{email}, {provider: "local"}]
+        }).select("+password");
+
         if (!isExists) {
             return next(new ErrorHandler("Invalid credentials", 400))
         }
@@ -156,6 +159,7 @@ export const handleLogin = CatchAsyncError(async (req: Request, res: Response, n
             accessToken,
         })
     } catch (err: any) {
+        console.log(err)
         return next(err)
     }
 })

@@ -19,6 +19,7 @@ export interface IUser extends Document {
         public_id: string,
         url: string
     },
+    provider: "google" | "github" | "local",
     role: string,
     isVerified: boolean,
     courses: Array<{ courseId: string }>
@@ -41,6 +42,11 @@ const userSchema: Schema<IUser> = new Schema({
             message: 'Please enter a valid email'
         },
         unique: true
+    },
+    provider: {
+        type: String,
+        enum: ['local', 'google', 'github'],
+        default: 'local'
     },
     password: {
         type: String,
@@ -103,7 +109,6 @@ userSchema.methods.SignRefreshToken = function () {
 userSchema.methods.comparePassword = async function (enteredPassword: string) {
     return await bcrypt.compare(enteredPassword, this.password);
 }
-
 
 
 export const User = model<IUser>('User', userSchema);
