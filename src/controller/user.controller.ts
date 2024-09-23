@@ -299,6 +299,8 @@ export const handleUpdateUserInfo = CatchAsyncError(async (req: Request, res: Re
         for (let key in req.body) {
             if (allowedField.includes(key)) {
                 updates[key as keyof IUpdateUserInfo] = req.body[key];
+            } else {
+                return next(new ErrorHandler(`Field: ${key} is not allowed`, 400))
             }
         }
 
