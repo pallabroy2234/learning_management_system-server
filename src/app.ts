@@ -4,6 +4,8 @@ import morgan from 'morgan';
 import {errorMiddleware} from "./middleware/error";
 import cookieParser from "cookie-parser";
 import {origin} from "./secret/secret";
+import passport from "./config/passport";
+import {handleGoogleCallback, handleGoogleLogin} from "./controller/google.controller";
 
 
 // import routes
@@ -28,17 +30,17 @@ app.use(cors({
     origin: [origin as string],
 }))
 
+
+// passport
+app.use(passport.initialize());
+
+
 // routes
 app.use("/api/v1/user", userRouter)
 
-
-// testing api
-app.get("/test", (req: Request, res: Response) => {
-    res.status(200).json({
-        success: true,
-        message: "API is working"
-    })
-})
+// google auth routes
+app.get('/auth/google', handleGoogleLogin);
+app.get('/auth/google/callback', handleGoogleCallback)
 
 
 // unknown route

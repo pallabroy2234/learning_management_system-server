@@ -44,11 +44,9 @@ export const errorMiddleware = (err: any, req: Request, res: Response, next: Nex
     }
 
     // If none of the above matches, provide a generic error message
-    if (err.statusCode === 500) {
-        err.message = "Something went wrong. Please try again later.";
-    }
-
-
+    // if (err.statusCode === 500) {
+    //     err.message = "Something went wrong. Please try again later.";
+    // }
 
     logger.error(err.message)
     return res.status(err.statusCode).json({

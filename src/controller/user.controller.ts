@@ -172,7 +172,7 @@ export const handleLogout = CatchAsyncError(async (req: Request, res: Response, 
         res.cookie("access_token", "", {maxAge: 1});
         res.cookie("refresh_token", "", {maxAge: 1});
 
-        const userId = req.user?._id || ""
+        const userId = (req.user as any)._id || "";
         const key = `user:${userId}`;
 
         const keyExists = await redisCache.exists(key);
@@ -242,7 +242,7 @@ export const handleUpdateAccessToken = CatchAsyncError(async (req: Request, res:
 
 export const handleGetUserInfo = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const id = req.user?._id || "";
+        const id = (req.user as any)._id || "";
         const key = `user:${id}`;
 
         const keyExists = await redisCache.exists(key);
@@ -270,14 +270,6 @@ export const handleGetUserInfo = CatchAsyncError(async (req: Request, res: Respo
     }
 
 })
-
-
-
-
-
-
-
-
 
 
 

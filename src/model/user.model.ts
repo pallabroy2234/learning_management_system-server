@@ -104,4 +104,6 @@ userSchema.methods.comparePassword = async function (enteredPassword: string) {
     return await bcrypt.compare(enteredPassword, this.password);
 }
 
+
+
 export const User = model<IUser>('User', userSchema);

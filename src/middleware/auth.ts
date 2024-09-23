@@ -2,9 +2,7 @@ import {Request, Response, NextFunction} from "express";
 import {CatchAsyncError} from "./catchAsyncError";
 import {ErrorHandler} from "../utils/ErrorHandler";
 import {JwtPayload, verify} from "jsonwebtoken";
-import {redisCache} from "../config/redis";
 import {jwt_access_token_secret} from "../secret/secret";
-import {handleUpdateAccessToken} from "../controller/user.controller";
 import {User} from "../model/user.model";
 
 
@@ -75,7 +73,7 @@ export const isLoggedOut = async (req: Request, res: Response, next: NextFunctio
  * */
 export const authorizeRole = (...roles: string[]) => {
     return (req: Request, res: Response, next: NextFunction) => {
-        if (!roles.includes(req.user?.role || "")) {
+        if (!roles.includes((req.user as any).role || "")) {
             return next(new ErrorHandler(`Forbidden. Only ${roles} can access this route`, 403))
         }
         next();

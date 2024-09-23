@@ -10,6 +10,7 @@ import {userActiveValidator, userLoginValidator, userRegisterValidator} from "..
 import {runValidation} from "../validator";
 import {isAuthenticated, isLoggedOut} from "../middleware/auth";
 
+
 export const userRouter = express.Router();
 
 
