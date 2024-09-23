@@ -18,18 +18,22 @@ export const handleGoogleLogin = passport.authenticate('google');
  *
  * */
 export const handleGoogleCallback = (req: Request, res: Response, next: NextFunction) => {
-    passport.authenticate('google', {session: false, failureRedirect: "/login"}, (err: any, user: any, info: any) => {
+    passport.authenticate('google', {session: false}, (err: any, user: any, info: any) => {
         if (err) {
+            if (err.name === 'TokenError') {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid token.Try again !",
+                });
+            }
             return next(err);
         }
-        if (!user) {
-            return res.redirect('/login');
-        }
+
         // generate token
         createToken(user, res);
         res.status(200).json({
             success: true,
-            message: "User logged in successfully",
+            message: "Logged in successfully",
         })
     })(req, res, next);
 }
