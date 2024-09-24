@@ -3,7 +3,14 @@ import {IUser, User} from "../model/user.model";
 import {ErrorHandler} from "../utils/ErrorHandler";
 import {CatchAsyncError} from "../middleware/catchAsyncError";
 import {sendMail} from "../mails/sendMail";
-import {IActivationRequest, ILoginRequest, IRegistrationBody, IUpdatePassword, IUpdateUserInfo} from "../@types/types";
+import {
+    IActivationRequest,
+    ICreatePassword,
+    ILoginRequest,
+    IRegistrationBody,
+    IUpdatePassword,
+    IUpdateUserInfo
+} from "../@types/types";
 import {createActivationToken, createToken} from "../utils/jsonwebtoken";
 import logger from "../config/logger";
 import {JwtPayload, verify} from "jsonwebtoken";
@@ -394,3 +401,38 @@ export const handleUpdatePassword = CatchAsyncError(async (req: Request, res: Re
     }
 })
 
+
+// create password for social login user
+
+
+export const handleCreatePassword = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const {newPassword, confirmPassword} = req.body as ICreatePassword;
+        const id = (req.user as IUser)._id;
+
+        const user = await User.findOne({_id: id}).select("+password");
+        if (!user) {
+            return next(new ErrorHandler("User not found", 404))
+        }
+
+        if (user.password) {
+            return next(new ErrorHandler("You already have password", 400))
+        }
+
+
+        user.password = newPassword;
+        await user.save();
+
+        //     cache update
+        const cacheKey = `user:${user._id}`;
+        await redisCache.set(cacheKey, JSON.stringify(user));
+
+        return res.status(200).json({
+            success: true,
+            message: "Password created successfully"
+        })
+    } catch (err: any) {
+        logger.error(`handleCreatePassword:${err.message}`)
+        return next(err)
+    }
+})

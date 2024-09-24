@@ -1,12 +1,13 @@
 import express from "express";
 import {
-    handleActivateUser, handleGetUserInfo,
+    handleActivateUser, handleCreatePassword, handleGetUserInfo,
     handleLogin,
     handleLogout,
     handleRegisterUser,
     handleUpdateAccessToken, handleUpdatePassword, handleUpdateUserInfo
 } from "../controller/user.controller";
 import {
+    createPasswordValidator,
     updatePasswordValidator,
     updateUserInfoValidator,
     userActiveValidator,
@@ -106,3 +107,26 @@ userRouter.put("/update-info", isAuthenticated, updateUserInfoValidator, runVali
  * */
 
 userRouter.put("/update-password", isAuthenticated, updatePasswordValidator, runValidation(422), handleUpdatePassword)
+
+
+/**
+ * @description         - Create password(for social login user)
+ * @path                - /api/v1/user/create-password
+ * @method              - POST
+ * @access              - Private
+ *
+ * */
+
+userRouter.post("/create-password", isAuthenticated, createPasswordValidator, runValidation(422), handleCreatePassword)
+
+
+
+
+
+
+
+
+
+
+
+

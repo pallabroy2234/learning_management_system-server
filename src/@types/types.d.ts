@@ -38,3 +38,8 @@ export interface IUpdatePassword {
     oldPassword: string,
     newPassword: string,
 }
+
+export interface ICreatePassword {
+    newPassword: string
+    confirmPassword: string
+}

@@ -90,3 +90,24 @@ export const updatePasswordValidator = [
             return true;
         })
 ];
+
+
+
+export const createPasswordValidator = [
+    body("newPassword")
+        .notEmpty()
+        .withMessage("Please enter your new password")
+        .isLength({ min: 6 })
+        .withMessage("Password must be at least 6 characters long"),
+    body("confirmPassword")
+        .notEmpty()
+        .withMessage("Please enter your confirm password")
+        .isLength({ min: 6 })
+        .withMessage("Password must be at least 6 characters long"),
+    body("confirmPassword").custom((value, { req }) => {
+        if (value !== req.body.newPassword) {
+            throw new Error("Passwords do not match");
+        }
+        return true;
+    })
+];
