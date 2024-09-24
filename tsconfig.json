@@ -21,7 +21,8 @@
   },
   "include": [
     "src/**/*.ts",
-    "src/**/*.d.ts"
+    "src/**/*.d.ts",
+    "src/@types/**/*"
   ],
   "exclude": [
     "node_modules"
