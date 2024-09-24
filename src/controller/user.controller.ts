@@ -402,8 +402,13 @@ export const handleUpdatePassword = CatchAsyncError(async (req: Request, res: Re
 })
 
 
-// create password for social login user
-
+/**
+ * @description         - Create password(only for social login)
+ * @path                - /api/v1/user/create-password
+ * @method              - POST
+ * @access              - Private
+ * @body                - {newPassword: string, confirmPassword: string}
+ * */
 
 export const handleCreatePassword = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -436,3 +441,5 @@ export const handleCreatePassword = CatchAsyncError(async (req: Request, res: Re
         return next(err)
     }
 })
+
+
