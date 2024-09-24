@@ -25,6 +25,7 @@ passport.use(new GoogleStrategy({
                         url: profile.photos?.[0].value,
                         public_id: ""
                     },
+                    provider: "google",
                 });
                 await newUser.save();
                 return cb(null, newUser);
