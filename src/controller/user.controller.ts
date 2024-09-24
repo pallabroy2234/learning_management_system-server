@@ -126,18 +126,25 @@ export const handleLogin = CatchAsyncError(async (req: Request, res: Response, n
         const {email, password} = req.body as ILoginRequest;
 
         // check user Exists
-        const isExists = await User.findOne({
-            $and: [{email}, {provider: "local"}]
-        }).select("+password");
+        const isExists = await User.findOne({email}).select("+password");
+
 
         if (!isExists) {
             return next(new ErrorHandler("Invalid credentials", 400))
         }
 
+        // if password is empty then return error
+        if (!isExists.password) {
+            return next(new ErrorHandler("Invalid credentials", 400))
+        }
+
+
         const isPasswordMatch = await isExists.comparePassword(password);
         if (!isPasswordMatch) {
-            return next(new ErrorHandler("Wrong password", 400))
+            return next(new ErrorHandler("Incorrect password", 400))
         }
+
+
         // generate token
         const {accessToken} = createToken(isExists, res);
 
@@ -159,7 +166,7 @@ export const handleLogin = CatchAsyncError(async (req: Request, res: Response, n
             accessToken,
         })
     } catch (err: any) {
-        console.log(err)
+        logger.error(`handleLogin:${err.message}`)
         return next(err)
     }
 })

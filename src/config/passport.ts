@@ -15,9 +15,7 @@ passport.use(new GoogleStrategy({
         try {
             const email = profile.emails?.[0].value;
 
-            let user = await User.findOne({
-                $and: [{email}, {provider: "google"}]
-            });
+            let user = await User.findOne({email});
 
             if (!user) {
                 let newUser = new User({
@@ -27,8 +25,6 @@ passport.use(new GoogleStrategy({
                         url: profile.photos?.[0].value,
                         public_id: ""
                     },
-                    // isVerified: true,
-                    provider: "google",
                 });
                 await newUser.save();
                 return cb(null, newUser);
