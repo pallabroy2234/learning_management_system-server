@@ -1,6 +1,7 @@
 import passport from "passport";
 import {NextFunction, Request, Response} from "express";
 import {createToken} from "../utils/jsonwebtoken";
+import {redisCache} from "../config/redis";
 
 
 /**
@@ -18,7 +19,7 @@ export const handleGoogleLogin = passport.authenticate('google');
  *
  * */
 export const handleGoogleCallback = (req: Request, res: Response, next: NextFunction) => {
-    passport.authenticate('google', {session: false}, (err: any, user: any, info: any) => {
+    passport.authenticate('google', {session: false}, async (err: any, user: any, info: any) => {
         if (err) {
             if (err.name === 'TokenError') {
                 return res.status(400).json({
@@ -28,6 +29,10 @@ export const handleGoogleCallback = (req: Request, res: Response, next: NextFunc
             }
             return next(err);
         }
+
+        // user info store in cache
+        const cacheKey = `user:${user._id}`;
+        await redisCache.set(cacheKey, JSON.stringify(user));
 
         // generate token
         createToken(user, res);

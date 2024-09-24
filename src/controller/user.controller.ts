@@ -104,7 +104,7 @@ export const handleActivateUser = CatchAsyncError(async (req: Request, res: Resp
 
         return res.status(201).json({
             success: true,
-            message: `Welcome ${name} your account has been created successfully`
+            message: `Login successfully`
         })
     } catch (err: any) {
         return next(err)

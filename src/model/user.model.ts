@@ -1,4 +1,4 @@
-import {model, ObjectId, Schema} from "mongoose";
+import {model, Schema} from "mongoose";
 import bcrypt from "bcryptjs";
 import {sign} from "jsonwebtoken";
 import {jwt_access_token_secret, jwt_refresh_token_secret} from "../secret/secret";
@@ -58,7 +58,7 @@ const userSchema: Schema<IUser> = new Schema({
     },
     avatar: {
         public_id: String,
-        url: String
+        url: String,
     },
     role: {
         type: String,

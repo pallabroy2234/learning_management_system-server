@@ -16,7 +16,8 @@
     "isolatedModules": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "baseUrl": "./"
+    "baseUrl": "./",
+    "sourceMap": true
   },
   "include": [
     "src/**/*.ts"
