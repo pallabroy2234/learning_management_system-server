@@ -69,3 +69,24 @@ export const updateUserInfoValidator = [
             return true;
         }),
 ]
+
+
+export const updatePasswordValidator = [
+    body("oldPassword")
+        .notEmpty()
+        .withMessage("Please enter your old password")
+        .isLength({min: 6})
+        .withMessage("Password must be at least 6 characters long"),
+    body("newPassword")
+        .notEmpty()
+        .withMessage("Please enter your new password")
+        .isLength({min: 6})
+        .withMessage("Password must be at least 6 characters long"),
+    body("newPassword")
+        .custom((newPassword, {req}) => {
+            if (newPassword === req.body.oldPassword) {
+                throw new Error("New password cannot be the same as the old password");
+            }
+            return true;
+        })
+];

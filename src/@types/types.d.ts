@@ -1,5 +1,15 @@
 import {IUser} from "../model/user.model";
-import {Request} from "express";
+
+
+declare global {
+    namespace Express {
+        interface Request {
+            user?: IUser
+            _id?: string
+            role?: string
+        }
+    }
+}
 
 export interface IRegistrationBody {
     name: string,
@@ -24,12 +34,7 @@ export interface IUpdateUserInfo {
 }
 
 
-declare global {
-    namespace Express {
-        interface Request {
-            user?: IUser
-            _id?: string
-            role?: string
-        }
-    }
+export interface IUpdatePassword {
+    oldPassword: string,
+    newPassword: string,
 }

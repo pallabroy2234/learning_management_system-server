@@ -3,7 +3,7 @@ import {IUser, User} from "../model/user.model";
 import {ErrorHandler} from "../utils/ErrorHandler";
 import {CatchAsyncError} from "../middleware/catchAsyncError";
 import {sendMail} from "../mails/sendMail";
-import {IActivationRequest, ILoginRequest, IRegistrationBody, IUpdateUserInfo} from "../types/types";
+import {IActivationRequest, ILoginRequest, IRegistrationBody, IUpdatePassword, IUpdateUserInfo} from "../@types/types";
 import {createActivationToken, createToken} from "../utils/jsonwebtoken";
 import logger from "../config/logger";
 import {JwtPayload, verify} from "jsonwebtoken";
@@ -338,6 +338,58 @@ export const handleUpdateUserInfo = CatchAsyncError(async (req: Request, res: Re
         })
     } catch (err: any) {
         logger.error(`handleUpdateUserInfo:${err.message}`)
+        return next(err)
+    }
+})
+
+
+/**
+ * @description         - Update password
+ * @path                - /api/v1/user/update-password
+ * @method              - PUT
+ * @access              - Private
+ * @body                - {oldPassword: string, newPassword: string}
+ * */
+export const handleUpdatePassword = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+
+        const {oldPassword, newPassword} = req.body as IUpdatePassword;
+
+        let user = await User.findOne({_id: (req.user as IUser)._id}).select("+password");
+
+
+        if (!user) {
+            return next(new ErrorHandler("User not found", 404))
+        }
+
+
+        if (!user.password) {
+            return next(new ErrorHandler("Invalid credentials", 400))
+        }
+
+        // compare old password
+        const isPasswordMatch = await user.comparePassword(oldPassword as string);
+
+        if (!isPasswordMatch) {
+            return next(new ErrorHandler("Incorrect old password", 400))
+        }
+
+
+        // update password
+        user.password = newPassword
+        await user.save()
+
+        // cache updated
+        const cacheKey = `user:${user._id}`;
+        await redisCache.set(cacheKey, JSON.stringify(user));
+
+        return res.status(200).json({
+            success: true,
+            message: "Password updated successfully"
+        })
+    } catch (err: any) {
+        console.log(err)
+        logger.error(`handleUpdatePassword:${err.message}`)
         return next(err)
     }
 })

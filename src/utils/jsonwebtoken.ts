@@ -1,4 +1,4 @@
-import {IRegistrationBody} from "../types/types";
+import {IRegistrationBody} from "../@types/types";
 import {Secret, sign} from "jsonwebtoken";
 import {Response} from "express";
 import {IUser} from "../model/user.model";

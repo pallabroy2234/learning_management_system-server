@@ -4,9 +4,10 @@ import {
     handleLogin,
     handleLogout,
     handleRegisterUser,
-    handleUpdateAccessToken, handleUpdateUserInfo
+    handleUpdateAccessToken, handleUpdatePassword, handleUpdateUserInfo
 } from "../controller/user.controller";
 import {
+    updatePasswordValidator,
     updateUserInfoValidator,
     userActiveValidator,
     userLoginValidator,
@@ -94,3 +95,14 @@ userRouter.get("/user-info", isAuthenticated, handleGetUserInfo)
  * */
 
 userRouter.put("/update-info", isAuthenticated, updateUserInfoValidator, runValidation(422), handleUpdateUserInfo)
+
+
+/**
+ * @description         - Update user password
+ * @path                - /api/v1/user/update-password
+ * @method              - PUT
+ * @access              - Private
+ *
+ * */
+
+userRouter.put("/update-password", isAuthenticated, updatePasswordValidator, runValidation(422), handleUpdatePassword)
