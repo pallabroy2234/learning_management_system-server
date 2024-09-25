@@ -3,10 +3,10 @@ import cors from 'cors';
 import morgan from 'morgan';
 import {errorMiddleware} from "./middleware/error";
 import cookieParser from "cookie-parser";
-import {origin} from "./secret/secret";
+import {cloud_api_key, cloud_api_secret, cloud_name, origin} from "./secret/secret";
 import passport from "./config/passport";
 import {handleGoogleCallback, handleGoogleLogin} from "./controller/google.controller";
-
+import {v2 as cloudinary} from "cloudinary";
 
 // import routes
 import {userRouter} from "./route/user.route";
@@ -41,6 +41,15 @@ app.use("/api/v1/user", userRouter)
 // google auth routes
 app.get('/auth/google', handleGoogleLogin);
 app.get('/auth/google/callback', handleGoogleCallback)
+
+
+// * cloudinary config
+
+cloudinary.config({
+    cloud_name: cloud_name as string,
+    api_key: cloud_api_key as string,
+    api_secret: cloud_api_secret as string,
+});
 
 
 // unknown route
