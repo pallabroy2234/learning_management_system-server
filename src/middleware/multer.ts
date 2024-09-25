@@ -44,14 +44,16 @@ uploadFolder(UPLOAD_FOLDER)
  * @returns void
  * */
 
-const storage = diskStorage({
-    destination: (req, file, cb) => {
-        // file name config
-        const extension = extname(file.originalname)
-        const fileName = Date.now() + -+Math.round(Math.random() * 1E9) + extension
-        cb(null, fileName)
-    }
-})
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, UPLOAD_FOLDER);
+    },
+    filename: function (req, file, cb) {
+        const extensionName = extname(file.originalname);
+
+        cb(null, Date.now() + "-" + file.originalname.replace(extensionName, "") + extensionName);
+    },
+});
 
 
 /**
