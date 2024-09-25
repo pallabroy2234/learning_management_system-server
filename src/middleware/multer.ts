@@ -1,9 +1,9 @@
 import {existsSync} from "node:fs"
 import logger from "../config/logger";
-import {mkdirSync} from "fs";
+import {mkdirSync, unlinkSync} from "fs";
 import multer, {diskStorage} from "multer";
 import {extname} from "path"
-import {Request, Response} from "express";
+import {Request} from "express";
 import {Error} from "mongoose";
 import {ErrorHandler} from "../utils/ErrorHandler";
 
@@ -84,7 +84,24 @@ export const upload = multer({
 })
 
 
-
+/**
+ * @description          - delete image function to delete image from the uploads folder
+ * @param path           - the path of the image to delete
+ * @returns void
+ *
+ * */
+export const deleteImage = (path: string) => {
+    try {
+        if (existsSync(path)) {
+            unlinkSync(path)
+            logger.info(`Image deleted successfully from path: ${path}`)
+        } else {
+            logger.warn(`Image does not exist in path: ${path}`)
+        }
+    } catch (err: any) {
+        logger.error(`Error deleting image:${err}`, err)
+    }
+}
 
 
 
