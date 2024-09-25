@@ -428,7 +428,7 @@ export const handleCreatePassword = CatchAsyncError(async (req: Request, res: Re
         }
 
 
-        user.password = newPassword;
+        user.password = newPassword
         await user.save();
 
         //     cache update
@@ -446,19 +446,16 @@ export const handleCreatePassword = CatchAsyncError(async (req: Request, res: Re
 })
 
 
-
 /**
  * @description         - Update avatar
  * @path                - /api/v1/user/update-avatar
  * @method              - PUT
  * @access              - Private
  * @body                - {avatar: string}
-* */
+ * */
 export const handleUpdateAvatar = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const {avatar: string} = req.body;
         const user = req.user as IUser;
-
         let isExists = await User.findOne({_id: user._id});
         if (!isExists) {
             return next(new ErrorHandler("User not found", 404))
