@@ -1,4 +1,3 @@
-import {Error} from "mongoose";
 
 
 export class ErrorHandler extends Error {
@@ -11,6 +10,5 @@ export class ErrorHandler extends Error {
         Error.captureStackTrace(this, this.constructor);  // Capture stack trace
     }
 }
-
 
 
