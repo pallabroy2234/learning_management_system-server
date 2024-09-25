@@ -415,7 +415,7 @@ export const handleUpdatePassword = CatchAsyncError(async (req: Request, res: Re
 
 export const handleCreatePassword = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const {newPassword, confirmPassword} = req.body as ICreatePassword;
+        const {confirmPassword} = req.body as ICreatePassword;
         const id = (req.user as IUser)._id;
 
         const user = await User.findOne({_id: id}).select("+password");
@@ -428,7 +428,7 @@ export const handleCreatePassword = CatchAsyncError(async (req: Request, res: Re
         }
 
 
-        user.password = newPassword
+        user.password = confirmPassword
         await user.save();
 
         //     cache update
