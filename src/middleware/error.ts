@@ -43,6 +43,12 @@ export const errorMiddleware = (err: any, req: Request, res: Response, next: Nex
         err = new ErrorHandler(message, 400);
     }
 
+    // ! multer file size error
+    if (err.code === "LIMIT_FILE_SIZE") {
+        const message = `File too large. File should be less than 2MB`;
+        err = new ErrorHandler(message, 400);
+    }
+
     // If none of the above matches, provide a generic error message
     // if (err.statusCode === 500) {
     //     err.message = "Something went wrong. Please try again later.";
