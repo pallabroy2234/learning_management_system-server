@@ -4,10 +4,10 @@ import {
     handleLogin,
     handleLogout,
     handleRegisterUser,
-    handleUpdateAccessToken, handleUpdatePassword, handleUpdateUserInfo
+    handleUpdateAccessToken, handleUpdateAvatar, handleUpdatePassword, handleUpdateUserInfo
 } from "../controller/user.controller";
 import {
-    createPasswordValidator,
+    createPasswordValidator, updateAvatarValidator,
     updatePasswordValidator,
     updateUserInfoValidator,
     userActiveValidator,
@@ -16,6 +16,7 @@ import {
 } from "../validator/user.validator";
 import {runValidation} from "../validator";
 import {isAuthenticated, isLoggedOut} from "../middleware/auth";
+import {upload} from "../middleware/multer";
 
 
 export const userRouter = express.Router();
@@ -120,10 +121,15 @@ userRouter.put("/update-password", isAuthenticated, updatePasswordValidator, run
 userRouter.post("/create-password", isAuthenticated, createPasswordValidator, runValidation(422), handleCreatePassword)
 
 
+/**
+ * @description         - Update user avatar
+ * @path                - /api/v1/user/update-avatar
+ * @method              - POST
+ * @access              - Private
+ *
+ * */
 
-
-
-
+userRouter.post("/update-avatar", upload.single("avatar"), isAuthenticated, updateAvatarValidator, runValidation(422), handleUpdateAvatar)
 
 
 

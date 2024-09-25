@@ -16,6 +16,9 @@ import logger from "../config/logger";
 import {JwtPayload, verify} from "jsonwebtoken";
 import {redisCache} from "../config/redis";
 import {jwt_activation_secret, jwt_refresh_token_secret} from "../secret/secret";
+import {v2 as cloudinary} from "cloudinary";
+import {deleteImage} from "../middleware/multer";
+import {deleteImageFromCloudinary} from "../utils/cloudinary";
 
 
 /**
@@ -443,3 +446,76 @@ export const handleCreatePassword = CatchAsyncError(async (req: Request, res: Re
 })
 
 
+
+/**
+ * @description         - Update avatar
+ * @path                - /api/v1/user/update-avatar
+ * @method              - PUT
+ * @access              - Private
+ * @body                - {avatar: string}
+* */
+export const handleUpdateAvatar = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const {avatar: string} = req.body;
+        const user = req.user as IUser;
+
+        let isExists = await User.findOne({_id: user._id});
+        if (!isExists) {
+            return next(new ErrorHandler("User not found", 404))
+        }
+
+
+        const avatar = req.file
+
+        let url = ""
+        let public_id = ""
+
+
+        if (avatar) {
+            try {
+                if (user.avatar.public_id) {
+                    const deleteImage = await deleteImageFromCloudinary(user.avatar.public_id)
+                    if (deleteImage instanceof ErrorHandler) {
+                        return next(deleteImage)
+                    }
+                }
+                const result = await cloudinary.uploader.upload(avatar.path, {
+                    folder: "lms/avatar",
+                    width: 150,
+                })
+                url = result.secure_url;
+                public_id = result.public_id;
+                // after successfully upload image delete image from local storage
+                deleteImage(avatar.path)
+            } catch (err: any) {
+                return next(new ErrorHandler("Failed to upload image", 400))
+            }
+        }
+
+
+        // update avatar in data base
+        isExists.avatar = {
+            url,
+            public_id
+        }
+
+        const updateAvatar = await isExists.save()
+        if (!updateAvatar) {
+            return next(new ErrorHandler("Failed to update avatar", 400))
+        }
+
+
+        // cache update
+        const cacheKey = `user:${user._id}`;
+        await redisCache.set(cacheKey, JSON.stringify(updateAvatar));
+
+
+        return res.status(200).json({
+            success: true,
+            message: "Avatar updated successfully",
+        })
+    } catch (err: any) {
+        logger.error(`handleUpdateProfileImage:${err.message}`)
+        return next(err)
+    }
+})
