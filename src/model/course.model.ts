@@ -31,9 +31,8 @@ interface ILink extends Document {
 // course Data
 interface ICourseData extends Document {
     title: string;
-    description: string;
     videoUrl: string;
-    videoThumbnail: string;
+    videoDescription: string;
     videoLength: string;
     videoSection: string;
     videoPlayer: string;
@@ -44,12 +43,11 @@ interface ICourseData extends Document {
 
 
 // course interface
-interface ICourse extends Document {
+export interface ICourse extends Document {
     name: string;
     description: string;
     price: number;
     estimatedPrice?: number;
-    // thumbnail: Object;
     thumbnail: { public_id: string, url: string };
     tags: string;
     level: string;
@@ -112,23 +110,27 @@ const commentSchema = new Schema<IComment>({
 
 // course Data Schema
 const courseDataSchema = new Schema<ICourseData>({
-    // videoUrl: String,
-    videoUrl: {
-        type: String,
-        required: [true, "Video url is required"]
-    },
-    videoThumbnail: Object,
-    videoSection: String,
     // title: String,
     title: {
         type: String,
         required: [true, "Course Title is required"]
     },
     // description: String,
-    description: {
+    videoDescription: {
         type: String,
-        required: [true, "Course Description is required"]
+        required: [true, "Video Description is required"]
     },
+    // videoUrl: String,
+    videoUrl: {
+        type: String,
+        required: [true, "Video url is required"]
+    },
+    // videoThumbnail: Object,
+    videoSection: {
+        type: String,
+        required: [true, "Video section is required"]
+    },
+
     videoLength: String,
     videoPlayer: String,
     links: [linkSchema],
@@ -159,11 +161,11 @@ const courseSchema = new Schema<ICourse>({
     thumbnail: {
         public_id: {
             type: String,
-            required: [true, "Thumbnail public_id is required"]
+            // required: [true, "Thumbnail public_id is required"]
         },
-        utl: {
+        url: {
             type: String,
-            required: [true, "Thumbnail url is required"]
+            // required: [true, "Thumbnail url is required"]
         }
     },
     tags: {
@@ -196,7 +198,12 @@ const courseSchema = new Schema<ICourse>({
             }
         }
     ],
-    reviews: [reviewSchema],
+    reviews: [
+        {
+            type: reviewSchema,
+            default: []
+        }
+    ],
     courseData: [courseDataSchema],
     rating: {
         type: Number,
@@ -206,7 +213,6 @@ const courseSchema = new Schema<ICourse>({
         type: Number,
         default: 0
     }
-
 })
 
 
