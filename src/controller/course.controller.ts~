@@ -69,6 +69,7 @@ export const handleCreateCourse = CatchAsyncError(async (req: Request, res: Resp
         return res.status(201).json({
             success: true,
             message: "Course created successfully",
+            data: course
         });
     } catch (err: any) {
         logger.error(`Error creating course: ${err.message}`);

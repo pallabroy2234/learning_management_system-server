@@ -14,7 +14,7 @@ import {
     userLoginValidator,
     userRegisterValidator
 } from "../validator/user.validator";
-import {runValidation} from "../validator";
+import {runValidator} from "../validator";
 import {isAuthenticated, isLoggedOut} from "../middleware/auth";
 import {upload} from "../middleware/multer";
 
@@ -30,7 +30,7 @@ export const userRouter = express.Router();
  * @handler           - handleRegisterUser
  *
  * */
-userRouter.post("/register", userRegisterValidator, runValidation(422), handleRegisterUser)
+userRouter.post("/register", userRegisterValidator, runValidator(422), handleRegisterUser)
 
 
 /**
@@ -42,7 +42,7 @@ userRouter.post("/register", userRegisterValidator, runValidation(422), handleRe
  *
  * */
 
-userRouter.post("/activate-user", userActiveValidator, runValidation(422), handleActivateUser)
+userRouter.post("/activate-user", userActiveValidator, runValidator(422), handleActivateUser)
 
 /**
  * @description       - User login route
@@ -52,7 +52,7 @@ userRouter.post("/activate-user", userActiveValidator, runValidation(422), handl
  * @handler           - handleLogin
  * */
 
-userRouter.post("/login", userLoginValidator, runValidation(422), isLoggedOut, handleLogin)
+userRouter.post("/login", userLoginValidator, runValidator(422), isLoggedOut, handleLogin)
 
 
 /**
@@ -96,7 +96,7 @@ userRouter.get("/user-info", isAuthenticated, handleGetUserInfo)
  * @access              - Private
  * */
 
-userRouter.put("/update-info", isAuthenticated, updateUserInfoValidator, runValidation(422), handleUpdateUserInfo)
+userRouter.put("/update-info", isAuthenticated, updateUserInfoValidator, runValidator(422), handleUpdateUserInfo)
 
 
 /**
@@ -107,7 +107,7 @@ userRouter.put("/update-info", isAuthenticated, updateUserInfoValidator, runVali
  *
  * */
 
-userRouter.put("/update-password", isAuthenticated, updatePasswordValidator, runValidation(422), handleUpdatePassword)
+userRouter.put("/update-password", isAuthenticated, updatePasswordValidator, runValidator(422), handleUpdatePassword)
 
 
 /**
@@ -118,7 +118,7 @@ userRouter.put("/update-password", isAuthenticated, updatePasswordValidator, run
  *
  * */
 
-userRouter.post("/create-password", isAuthenticated, createPasswordValidator, runValidation(422), handleCreatePassword)
+userRouter.post("/create-password", isAuthenticated, createPasswordValidator, runValidator(422), handleCreatePassword)
 
 
 /**
@@ -129,7 +129,7 @@ userRouter.post("/create-password", isAuthenticated, createPasswordValidator, ru
  *
  * */
 
-userRouter.post("/update-avatar", upload.single("avatar"), isAuthenticated, updateAvatarValidator, runValidation(422), handleUpdateAvatar)
+userRouter.post("/update-avatar", upload.single("avatar"), isAuthenticated, updateAvatarValidator, runValidator(422), handleUpdateAvatar)
 
 
 

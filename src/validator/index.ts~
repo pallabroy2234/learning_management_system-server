@@ -2,7 +2,7 @@ import {validationResult} from "express-validator";
 import {NextFunction, Response, Request} from "express";
 import {deleteImage} from "../middleware/multer";
 
-export const runValidator = (statusCode = 422) => {
+export const runValidation = (statusCode = 422) => {
     return (req: Request, res: Response, next: NextFunction) => {
         try {
             const errors = validationResult(req);
