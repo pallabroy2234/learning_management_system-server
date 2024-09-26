@@ -10,6 +10,7 @@ import {v2 as cloudinary} from "cloudinary";
 
 // import routes
 import {userRouter} from "./route/user.route";
+import {courseRoute} from "./route/course.route";
 
 
 export const app = express();
@@ -37,6 +38,7 @@ app.use(passport.initialize());
 
 // routes
 app.use("/api/v1/user", userRouter)
+app.use("/api/v1/course", courseRoute)
 
 // google auth routes
 app.get('/auth/google', handleGoogleLogin);
