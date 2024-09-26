@@ -4,6 +4,7 @@ import {ErrorHandler} from "../utils/ErrorHandler";
 import {JwtPayload, verify} from "jsonwebtoken";
 import {jwt_access_token_secret} from "../secret/secret";
 import {User} from "../model/user.model";
+import {deleteImage} from "./multer";
 
 
 /**
@@ -74,6 +75,10 @@ export const isLoggedOut = async (req: Request, res: Response, next: NextFunctio
 export const authorizeRole = (...roles: string[]) => {
     return (req: Request, res: Response, next: NextFunction) => {
         if (!roles.includes((req.user as any).role || "")) {
+            // if any error and has file delete the file || image
+            if (req.file) {
+                deleteImage(req.file?.path);
+            }
             return next(new ErrorHandler(`Forbidden. Only ${roles} can access this route`, 403))
         }
         next();
