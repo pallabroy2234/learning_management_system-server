@@ -5,6 +5,7 @@ import {CatchAsyncError} from "../middleware/catchAsyncError";
 import logger from "../config/logger";
 import {Course, ICourse} from "../model/course.model";
 import {deleteImage} from "../middleware/multer";
+import {redisCache} from "../config/redis";
 
 
 /**
@@ -59,6 +60,11 @@ export const handleCreateCourse = CatchAsyncError(async (req: Request, res: Resp
         if (!course) {
             return next(new ErrorHandler("Failed to create course", 400));
         }
+
+        // cache course
+        const cacheKey = `course:${course._id}`;
+        await redisCache.set(cacheKey, JSON.stringify(course));
+
 
         return res.status(201).json({
             success: true,
