@@ -67,6 +67,7 @@ export const filterAllowedFields = (allowed: any, data: any) => {
             continue; // Skip root _id field to prevent updating
         }
 
+
         // Case 1: Handle arrays of objects (e.g., courseData, benefits, etc.)
         if (Array.isArray(allowed[key]) && Array.isArray(data[key])) {
             result[key] = data[key].map((item: any) => {
