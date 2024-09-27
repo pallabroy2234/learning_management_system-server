@@ -1,5 +1,5 @@
 import express from "express";
-import {handleCreateCourse} from "../controller/course.controller";
+import {handleCreateCourse, handleUpdateCourse} from "../controller/course.controller";
 import {createCourseValidator} from "../validator/course.validator";
 import {runValidator} from "../validator";
 import {authorizeRole, isAuthenticated} from "../middleware/auth";
@@ -18,3 +18,13 @@ export const courseRoute = express.Router();
  * */
 
 courseRoute.post("/create", upload.single("thumbnail"), isAuthenticated, authorizeRole("admin"), createCourseValidator, runValidator(422), handleCreateCourse)
+
+
+/**
+ * @description          - update a course
+ * @route                - /api/v1/course/update/:id
+ * @method               - PUT
+ * @access               - Private(admin)
+* */
+
+courseRoute.put("/update/:id", upload.single("thumbnail"), isAuthenticated, authorizeRole("admin"), createCourseValidator, runValidator(422), handleUpdateCourse)
