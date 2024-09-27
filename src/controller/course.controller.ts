@@ -1,4 +1,4 @@
-import {Request, Response, NextFunction} from "express";
+import {NextFunction, Request, Response} from "express";
 import {ErrorHandler} from "../utils/ErrorHandler";
 import {v2 as cloudinary} from "cloudinary";
 import {CatchAsyncError} from "../middleware/catchAsyncError";
@@ -6,6 +6,8 @@ import logger from "../config/logger";
 import {Course, ICourse} from "../model/course.model";
 import {deleteImage} from "../middleware/multer";
 import {redisCache} from "../config/redis";
+import {allowedFields, filterAllowedFields} from "../service/course.service";
+import {deleteImageFromCloudinary, imageUpload} from "../utils/cloudinary";
 
 
 /**
@@ -69,6 +71,7 @@ export const handleCreateCourse = CatchAsyncError(async (req: Request, res: Resp
         return res.status(201).json({
             success: true,
             message: "Course created successfully",
+            payload: course
         });
     } catch (err: any) {
         logger.error(`Error creating course: ${err.message}`);
@@ -77,5 +80,82 @@ export const handleCreateCourse = CatchAsyncError(async (req: Request, res: Resp
 });
 
 
+/**
+ * @description          - update a course
+ * @route                - /api/v1/course/update/:id
+ * @method               - PUT
+ * @access               - Private(admin)
+ *
+ * */
+export const handleUpdateCourse = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const courseId = req.params.id;
+        const data = req.body;
+        const {result: updateField, invalidFields} = filterAllowedFields(allowedFields, data)
+
+        if (invalidFields.length > 0) {
+            return next(new ErrorHandler(`Invalid fields: ${invalidFields.join(", ")}`, 400));
+        }
+
+        const thumbnailExists = await Course.findById(courseId).select("thumbnail _id");
+        if (!thumbnailExists) {
+            return next(new ErrorHandler("Course not found", 404));
+        }
+
+        const thumbnail = req.file;
+
+        let tempData = {
+            public_id: "",
+            url: ""
+        }
+
+
+        /**
+         * @note - Deletes the existing thumbnail if a new one is provided,
+         *                or if no thumbnail is included in the request body.
+         *                This ensures that the previous thumbnail is removed
+         *                when no replacement is specified.
+         */
+        if (thumbnail || thumbnailExists?.thumbnail.public_id) {
+            if (thumbnailExists?.thumbnail.public_id) {
+                const deleteThumbnail = await deleteImageFromCloudinary(thumbnailExists?.thumbnail.public_id)
+                if (deleteThumbnail instanceof ErrorHandler) {
+                    return next(deleteThumbnail)
+                }
+            }
+        }
+
+
+
+        if (thumbnail) {
+            const result = await imageUpload({path: thumbnail.path, folder: "lms/course-thumbnail"})
+            if (result instanceof ErrorHandler) {
+                return next(result)
+            }
+            tempData = {
+                public_id: result.public_id,
+                url: result.url
+            }
+        }
+
+
+        const update = await Course.findByIdAndUpdate(courseId, {
+            $set: {
+                ...updateField,
+                thumbnail: tempData
+            },
+        }, {new: true})
+        if (!update) {
+            return next(new ErrorHandler("Failed to update course", 400));
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Updated successfully",
+        })
+    } catch (err: any) {
+        logger.error(`Error updating course: ${err.message}`);
+        return next(err);
+    }
+})
 
 
