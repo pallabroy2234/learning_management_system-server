@@ -1,4 +1,4 @@
-import {body} from "express-validator";
+import {body, ValidationChain} from "express-validator";
 
 
 /**
@@ -29,9 +29,7 @@ export const createCourseValidator = [
         .optional()
         .isNumeric().withMessage('Estimated price must be a number.'),
 
-    // Validate thumbnail
-
-
+    
     // Validate tags
     body('tags')
         .notEmpty().withMessage('At least one tag is required.')
@@ -81,9 +79,33 @@ export const createCourseValidator = [
     body('courseData.*.suggestion').optional().isString().withMessage('Suggestion should be text.'),
 
     // Validate links inside course data
-    body('courseData.*.links').optional().isArray().withMessage('Links should be a list.'),
-    body('courseData.*.links.*.title').optional().isString().withMessage('Link title should be text.'),
-    body('courseData.*.links.*.url').optional().isURL().withMessage('Provide a valid link URL.'),
+    // body('courseData.*.links').optional().isArray().withMessage('Links should be a list.'),
+    // body('courseData.*.links.*.title').optional().isString().withMessage('Link title should be text.'),
+    // body('courseData.*.links.*.url').optional().isURL().withMessage('Provide a valid link URL.'),
+
+    body('courseData.*.links').optional().isArray().withMessage('Links should be a list.')
+        .custom((links, {req}) => {
+            // Iterate through each link object and apply conditional logic
+            links.forEach((link: any, index: any) => {
+                const {title, url} = link;
+
+                // If title is provided, URL must be provided and must be a valid URL
+                if (title && !url) {
+                    throw new Error(`Provide a link for title :${title}`);
+                }
+                if (title && url && !/^https?:\/\/[^\s$.?#].[^\s]*$/.test(url)) {
+                    throw new Error(`Invalid URL for link ${title}: ${url}`);
+                }
+
+                // If URL is provided, title must be provided as well
+                if (url && !title) {
+                    throw new Error(`Provide a title for : ${url}`);
+                }
+            });
+            return true;
+        }),
+
+    body('courseData.*.links.*.url').optional().isURL().withMessage('Provide a valid link URL.'), // URL validation for individual links
 
     // Validate questions inside course data
     body('courseData.*.questions').optional().isArray().withMessage('Questions should be a list.'),
