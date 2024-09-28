@@ -5,9 +5,7 @@ import {runValidator} from "../validator";
 import {authorizeRole, isAuthenticated} from "../middleware/auth";
 import {upload} from "../middleware/multer";
 
-
 export const courseRoute = express.Router();
-
 
 /**
  * @description          - create a course
@@ -17,14 +15,29 @@ export const courseRoute = express.Router();
  *
  * */
 
-courseRoute.post("/create", upload.single("thumbnail"), isAuthenticated, authorizeRole("admin"), createCourseValidator, runValidator(422), handleCreateCourse)
-
+courseRoute.post(
+	"/create",
+	upload.single("thumbnail"),
+	isAuthenticated,
+	authorizeRole("admin"),
+	createCourseValidator,
+	runValidator(422),
+	handleCreateCourse,
+);
 
 /**
  * @description          - update a course
  * @route                - /api/v1/course/update/:id
  * @method               - PUT
  * @access               - Private(admin)
-* */
+ * */
 
-courseRoute.put("/update/:id", upload.single("thumbnail"), isAuthenticated, authorizeRole("admin"), createCourseValidator, runValidator(422), handleUpdateCourse)
+courseRoute.put(
+	"/update/:id",
+	upload.single("thumbnail"),
+	isAuthenticated,
+	authorizeRole("admin"),
+	createCourseValidator,
+	runValidator(422),
+	handleUpdateCourse,
+);
