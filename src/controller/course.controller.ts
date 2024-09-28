@@ -218,7 +218,7 @@ export const handleGetAllCourses = CatchAsyncError(async (req: Request, res: Res
 		} else {
 			course = await Course.find({}).select(
 				"-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links",
-			);
+			).sort({createdAt: -1});
 
 			// store in cache
 			await redisCache.set(cacheKey, JSON.stringify(course));
