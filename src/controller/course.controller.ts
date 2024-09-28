@@ -163,14 +163,12 @@ export const handleUpdateCourse = CatchAsyncError(async (req: Request, res: Resp
 	}
 });
 
-
-
 /**
  * @description          - get a single course
- * @route                - /api/v1/course/:id
+ * @route                - /api/v1/course/get-course/:id
  * @method               - GET
  * @access               - Public(only not purchased courses)
-* */
+ * */
 export const handleGetSingleCourse = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const courseId = req.params.id;
