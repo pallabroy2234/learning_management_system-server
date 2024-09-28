@@ -8,6 +8,7 @@ import {deleteImage} from "../middleware/multer";
 import {redisCache} from "../config/redis";
 import {allowedFields, filterAllowedFields} from "../service/course.service";
 import {deleteImageFromCloudinary, imageUpload} from "../utils/cloudinary";
+import {IUser} from "../model/user.model";
 
 /**
  * @description          - create a course
@@ -200,13 +201,12 @@ export const handleGetSingleCourse = CatchAsyncError(async (req: Request, res: R
 	}
 });
 
-
 /**
  * @description          - get all courses
  * @route                - /api/v1/course/get-courses/all
  * @method               - GET
  * @access               - Public(only not purchased courses)
-* */
+ * */
 export const handleGetAllCourses = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const cacheKey = "course:all";
@@ -216,9 +216,9 @@ export const handleGetAllCourses = CatchAsyncError(async (req: Request, res: Res
 			const data = await redisCache.get(cacheKey);
 			course = JSON.parse(data!);
 		} else {
-			course = await Course.find({}).select(
-				"-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links",
-			).sort({createdAt: -1});
+			course = await Course.find({})
+				.select("-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links")
+				.sort({createdAt: -1});
 
 			// store in cache
 			await redisCache.set(cacheKey, JSON.stringify(course));
@@ -231,6 +231,51 @@ export const handleGetAllCourses = CatchAsyncError(async (req: Request, res: Res
 		});
 	} catch (err: any) {
 		logger.error(`Error getting all courses: ${err.message}`);
+		return next(err);
+	}
+});
+
+
+/**
+ * @description          - get course content
+ * @route                - /api/v1/course/get-course-content/:id
+ * @method               - GET
+ * @access               - Private(only purchased courses)
+ *
+* */
+export const handleGetCourseContent = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const courseId = req.params.id;
+		const user = req.user as IUser;
+		const cacheKey = `course:${courseId}-${user._id}:content`;
+
+		const courseExists = user.courses.some((course: any) => course._id.toString() === courseId.toString());
+		console.log(courseExists);
+
+		if (!courseExists) {
+			return next(new ErrorHandler("You need to purchase this course to access it", 400));
+		}
+		let content;
+
+		if (await redisCache.exists(cacheKey)) {
+			const data = await redisCache.get(cacheKey);
+			content = JSON.parse(data!);
+		} else {
+			const course = await Course.findById(courseId);
+			if (!course) {
+				return next(new ErrorHandler("The course you are trying to access does not exist.", 404));
+			}
+			content = course?.courseData;
+			// 		store in cache
+			await redisCache.set(cacheKey, JSON.stringify(content));
+		}
+		return res.status(200).json({
+			success: true,
+			message: "Course data retrieved successfully",
+			payload: content,
+		});
+	} catch (err: any) {
+		logger.error(`Error getting course data: ${err.message}`);
 		return next(err);
 	}
 });
