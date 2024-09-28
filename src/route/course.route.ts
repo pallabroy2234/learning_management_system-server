@@ -1,5 +1,5 @@
 import express from "express";
-import {handleCreateCourse, handleUpdateCourse} from "../controller/course.controller";
+import {handleCreateCourse, handleGetSingleCourse, handleUpdateCourse} from "../controller/course.controller";
 import {createCourseValidator} from "../validator/course.validator";
 import {runValidator} from "../validator";
 import {authorizeRole, isAuthenticated} from "../middleware/auth";
@@ -41,3 +41,12 @@ courseRoute.put(
 	runValidator(422),
 	handleUpdateCourse,
 );
+
+/**
+ * @description          - get a single course
+ * @route                - /api/v1/course/:id
+ * @method               - GET
+ * @access               - Public
+ * */
+
+courseRoute.get("/:id", handleGetSingleCourse);
