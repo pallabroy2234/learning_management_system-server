@@ -199,3 +199,38 @@ export const handleGetSingleCourse = CatchAsyncError(async (req: Request, res: R
 		return next(err);
 	}
 });
+
+
+/**
+ * @description          - get all courses
+ * @route                - /api/v1/course/get-courses/all
+ * @method               - GET
+ * @access               - Public(only not purchased courses)
+* */
+export const handleGetAllCourses = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const cacheKey = "course:all";
+		let course = [];
+
+		if (await redisCache.exists(cacheKey)) {
+			const data = await redisCache.get(cacheKey);
+			course = JSON.parse(data!);
+		} else {
+			course = await Course.find({}).select(
+				"-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links",
+			);
+
+			// store in cache
+			await redisCache.set(cacheKey, JSON.stringify(course));
+		}
+		console.log(course);
+		return res.status(200).json({
+			success: true,
+			message: "Courses retrieved successfully",
+			payload: course || [],
+		});
+	} catch (err: any) {
+		logger.error(`Error getting all courses: ${err.message}`);
+		return next(err);
+	}
+});
