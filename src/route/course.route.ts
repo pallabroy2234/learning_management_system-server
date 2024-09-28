@@ -1,8 +1,10 @@
 import express from "express";
 import {
-	handleCreateCourse, handleGetAllCourses,
+	handleCreateCourse,
+	handleGetAllCourses,
+	handleGetCourseContent,
 	handleGetSingleCourse,
-	handleUpdateCourse
+	handleUpdateCourse,
 } from "../controller/course.controller";
 import {createCourseValidator} from "../validator/course.validator";
 import {runValidator} from "../validator";
@@ -55,7 +57,6 @@ courseRoute.put(
 
 courseRoute.get("/get-course/:id", handleGetSingleCourse);
 
-
 /**
  * @description          - get all courses
  * @route                - /api/v1/course/get-courses/all
@@ -64,3 +65,12 @@ courseRoute.get("/get-course/:id", handleGetSingleCourse);
  * */
 
 courseRoute.get("/get-courses/all", handleGetAllCourses);
+
+/**
+ * @description          - get course content
+ * @route                - /api/v1/course/get-course-content/:id
+ * @method               - GET
+ * @access               - Private(only purchased courses)
+* */
+
+courseRoute.get("/get-course-content/:id", isAuthenticated, handleGetCourseContent);
