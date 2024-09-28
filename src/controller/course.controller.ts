@@ -162,3 +162,42 @@ export const handleUpdateCourse = CatchAsyncError(async (req: Request, res: Resp
 		return next(err);
 	}
 });
+
+
+
+/**
+ * @description          - get a single course
+ * @route                - /api/v1/course/:id
+ * @method               - GET
+ * @access               - Public(only not purchased courses)
+* */
+export const handleGetSingleCourse = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const courseId = req.params.id;
+		const cacheKey = `course:${courseId}`;
+
+		let course;
+		if (await redisCache.exists(cacheKey)) {
+			const data = await redisCache.get(cacheKey);
+			course = JSON.parse(data!);
+		} else {
+			course = await Course.findById(courseId).select(
+				"-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links",
+			);
+
+			if (!course) {
+				return next(new ErrorHandler("Course not found", 404));
+			}
+			// store in cache
+			await redisCache.set(cacheKey, JSON.stringify(course));
+		}
+		return res.status(200).json({
+			success: true,
+			message: "Course retrieved successfully",
+			payload: course,
+		});
+	} catch (err: any) {
+		logger.error(`Error getting course: ${err.message}`);
+		return next(err);
+	}
+});
