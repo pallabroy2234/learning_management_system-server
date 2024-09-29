@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Reply Notification</title>
+    <style>
+        .email-wrapper {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+        }
+        .header {
+            background-color: #0073e6;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            padding: 20px;
+        }
+        .button {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .button a {
+            padding: 10px 20px;
+            background-color: #0073e6;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+            margin-top: 30px;
+        }
+        .footer a {
+            color: #0073e6;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+<div class="email-wrapper">
+    <div class="header">
+        <h1>You've Got a New Reply!</h1>
+    </div>
+    <div class="content">
+        <p>Hello <%= name %>,</p>
+        <p>We hope you're doing well! You've received a new response to your question on our platform.</p>
+        <p>The reply is in response to your question:</p>
+        <blockquote>
+           Title: "<%= title %>"
+        </blockquote>
+        <p>We're excited to help you find the answers you're looking for. Don't forget to check it out by clicking the button below!</p>
+        <div class="button">
+            <a href="#">View Full Reply</a>
+        </div>
+    </div>
+    <div class="footer">
+        <p>If you need further assistance, feel free to reach out to our support team. We're here to help!</p>
+        <p>If you'd like to stop receiving these notifications, you can <a href="#">unsubscribe here</a> at any time.</p>
+        <p>Thank you for being part of our community!</p>
+    </div>
+</div>
+</body>
+</html>
