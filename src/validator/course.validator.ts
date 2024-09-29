@@ -122,3 +122,16 @@ export const addQuestionValidator = [
 	body("contentId").notEmpty().withMessage("Content ID is required.").isMongoId().withMessage("Provide a valid content ID."),
 	body("question").notEmpty().withMessage("Question is required."),
 ];
+
+/**
+ * @description          - validate add answer request
+ * @route                - /api/v1/course/add-answer
+ * @method               - PUT
+ * @access               - Private
+ * */
+export const addAnswerValidator = [
+	body("courseId").notEmpty().withMessage("Course ID is required.").isMongoId().withMessage("Provide a valid course ID."),
+	body("contentId").notEmpty().withMessage("Content ID is required.").isMongoId().withMessage("Provide a valid content ID."),
+	body("questionId").notEmpty().withMessage("Question ID is required.").isMongoId().withMessage("Provide a valid question ID."),
+	body("answer").notEmpty().withMessage("Answer is required."),
+];
