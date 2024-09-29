@@ -47,3 +47,11 @@ export interface IAddQuestionData {
 	courseId: string;
 	contentId: string;
 }
+
+
+export interface IQuestionReply{
+	answer: string;
+	courseId: string;
+	contentId: string;
+	questionId: string;
+}
