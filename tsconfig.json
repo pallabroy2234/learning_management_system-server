@@ -22,7 +22,8 @@
   "include": [
     "src/**/*.ts",
     "src/**/*.d.ts",
-    "src/@types/**/*"
+    "src/@types/**/*",
+    "src/**/*.ejs"
   ],
   "exclude": [
     "node_modules"
