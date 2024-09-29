@@ -1,4 +1,5 @@
 import {Document, Schema, ObjectId, model} from "mongoose";
+import {IUser} from "./user.model";
 
 
 // course comment interface
@@ -6,9 +7,12 @@ import {Document, Schema, ObjectId, model} from "mongoose";
 
 interface IComment extends Document {
     // user: object;
-    user: ObjectId;
+    user: IUser;
     question: string;
-    questionReplies?: IComment[]
+    questionReplies?: {
+        user:IUser;
+        answer: string;
+    }[]
 }
 
 //  review interface
@@ -101,10 +105,17 @@ const commentSchema = new Schema<IComment>({
         type: String,
     },
     // commentsReplies: [Object]
-    questionReplies: [{
-        type: Schema.Types.ObjectId,
-        ref: "Comment"
-    }]
+    questionReplies: [
+        {
+            user:{
+                type:Schema.Types.ObjectId,
+                ref:"User"
+            },
+            answer:{
+                type:String,
+            }
+        }
+    ]
 })
 
 
