@@ -47,9 +47,10 @@ export const handleRegisterUser = CatchAsyncError(async (req: Request, res: Resp
         try {
             await sendMail({
                 email: email,
-                subject: "Active your account",
-                data: {name, activationCode: activationToken.activationCode}
-            })
+                subject: "Activate your account",
+                data: { name, activationCode: activationToken.activationCode },
+                template: "activationMail"
+            });
 
             return res.status(201).json({
                 success: true,
@@ -114,7 +115,7 @@ export const handleActivateUser = CatchAsyncError(async (req: Request, res: Resp
 
         return res.status(201).json({
             success: true,
-            message: `Login successfully`
+            message: `Account activated successfully`,
         })
     } catch (err: any) {
         return next(err)
