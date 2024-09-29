@@ -9,6 +9,8 @@ import {redisCache} from "../config/redis";
 import {allowedFields, filterAllowedFields} from "../service/course.service";
 import {deleteImageFromCloudinary, imageUpload} from "../utils/cloudinary";
 import {IUser} from "../model/user.model";
+import {IAddQuestionData} from "../@types/types";
+import mongoose from "mongoose";
 
 /**
  * @description          - create a course
@@ -235,14 +237,13 @@ export const handleGetAllCourses = CatchAsyncError(async (req: Request, res: Res
 	}
 });
 
-
 /**
  * @description          - get course content
  * @route                - /api/v1/course/get-course-content/:id
  * @method               - GET
  * @access               - Private(only purchased courses)
  *
-* */
+ * */
 export const handleGetCourseContent = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const courseId = req.params.id;
@@ -276,6 +277,57 @@ export const handleGetCourseContent = CatchAsyncError(async (req: Request, res: 
 		});
 	} catch (err: any) {
 		logger.error(`Error getting course data: ${err.message}`);
+		return next(err);
+	}
+});
+
+
+/**
+ * @description        - add question to course
+* */
+export const handleAddQuestion = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const {question, courseId, contentId} = req.body as IAddQuestionData;
+		const user = req.user as IUser;
+
+
+
+		const course = await Course.findById(courseId);
+		if (!course) {
+			return next(new ErrorHandler("Course not exists", 404));
+		}
+
+		const courseContent = course?.courseData.find((item: any) => item._id.toString() === contentId.toString());
+		if (!courseContent) {
+			return next(new ErrorHandler("Course lesson not exists", 404));
+		}
+
+		const newQuestion: any = {
+			user: user._id,
+			question,
+			questionReplies: [],
+		};
+
+		courseContent.questions.push(newQuestion);
+
+		const updatedCourse = await course.save();
+		if (!updatedCourse) {
+			return next(new ErrorHandler("Failed to add question", 400));
+		}
+
+		// invalidate cache for all course keys
+		const keys = await redisCache.keys("course:*");
+		if (keys.length > 0) {
+			await redisCache.del(keys);
+		}
+
+		return res.status(200).json({
+			success: true,
+			message: "Question added successfully",
+			payload: course,
+		});
+	} catch (err: any) {
+		logger.error(`Error adding question: ${err.message}`);
 		return next(err);
 	}
 });
