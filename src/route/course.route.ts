@@ -1,12 +1,13 @@
 import express from "express";
 import {
+	handleAddQuestion,
 	handleCreateCourse,
 	handleGetAllCourses,
 	handleGetCourseContent,
 	handleGetSingleCourse,
 	handleUpdateCourse,
 } from "../controller/course.controller";
-import {createCourseValidator} from "../validator/course.validator";
+import {addQuestionValidator, createCourseValidator} from "../validator/course.validator";
 import {runValidator} from "../validator";
 import {authorizeRole, isAuthenticated} from "../middleware/auth";
 import {upload} from "../middleware/multer";
@@ -71,6 +72,16 @@ courseRoute.get("/get-courses/all", handleGetAllCourses);
  * @route                - /api/v1/course/get-course-content/:id
  * @method               - GET
  * @access               - Private(only purchased courses)
-* */
+ * */
 
 courseRoute.get("/get-course-content/:id", isAuthenticated, handleGetCourseContent);
+
+
+/**
+ * @description          - add question to course
+ * @route                - /api/v1/course/add-question
+ * @method               - PUT
+ * @access               - Private
+* */
+
+courseRoute.put("/add-question", isAuthenticated, addQuestionValidator, runValidator(422), handleAddQuestion);
