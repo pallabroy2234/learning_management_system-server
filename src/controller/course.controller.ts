@@ -9,8 +9,9 @@ import {redisCache} from "../config/redis";
 import {allowedFields, filterAllowedFields} from "../service/course.service";
 import {deleteImageFromCloudinary, imageUpload} from "../utils/cloudinary";
 import {IUser} from "../model/user.model";
-import {IAddQuestionData} from "../@types/types";
-import mongoose from "mongoose";
+import {IAddQuestionData, IQuestionReply} from "../@types/types";
+import {sendMail} from "../mails/sendMail";
+import {ObjectId} from "mongodb";
 
 /**
  * @description          - create a course
@@ -281,16 +282,17 @@ export const handleGetCourseContent = CatchAsyncError(async (req: Request, res: 
 	}
 });
 
-
 /**
  * @description        - add question to course
-* */
+ * @route              - /api/v1/course/add-question
+ * @method             - PUT
+ * @access             - Private
+ *
+ * */
 export const handleAddQuestion = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const {question, courseId, contentId} = req.body as IAddQuestionData;
 		const user = req.user as IUser;
-
-
 
 		const course = await Course.findById(courseId);
 		if (!course) {
@@ -328,6 +330,94 @@ export const handleAddQuestion = CatchAsyncError(async (req: Request, res: Respo
 		});
 	} catch (err: any) {
 		logger.error(`Error adding question: ${err.message}`);
+		return next(err);
+	}
+});
+
+/**
+ * @description          - add answer to question
+ * @route                - /api/v1/course/add-answer
+ * @method               - PUT
+ * @access               - Private
+ *
+* */
+export const handleQuestionReply = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const {answer, courseId, contentId, questionId} = req.body as IQuestionReply;
+
+		const user = req.user as IUser;
+
+		const course: any = await Course.findById(courseId).populate({
+			path: "courseData.questions.user",
+			select: "name email",
+		});
+
+		if (!course) {
+			return next(new ErrorHandler("Course not exists", 404));
+		}
+
+		const courseContent = course?.courseData.find((item: any) => item._id.toString() === contentId.toString());
+		if (!courseContent) {
+			return next(new ErrorHandler("Course lesson not exists", 404));
+		}
+
+		const question = courseContent.questions.find((item: any) => item._id.toString() === questionId.toString());
+		if (!question) {
+			return next(new ErrorHandler("Question not exists", 404));
+		}
+
+		//    create new answer
+		const newAnswer: any = {
+			user: user._id,
+			answer,
+		};
+
+		question.questionReplies?.push(newAnswer);
+
+
+
+		const updatedCourse = await course.save();
+		if (!updatedCourse) {
+			return next(new ErrorHandler("Failed to add answer", 400));
+		}
+
+
+		console.log(user._id.toString() === question.user._id.toString());
+
+		if (user._id.toString() === question.user._id.toString()) {
+			// 	create notification
+		} else {
+			const data = {
+				name: question.user.name,
+				title: courseContent.title,
+			};
+
+			try {
+				await sendMail({
+					email: question.user.email,
+					subject: "Question Reply",
+					data,
+					template: "question-reply",
+				});
+			} catch (err: any) {
+				logger.error(`Error sending email: ${err.message}`);
+				return next(new ErrorHandler("Failed to send email", 500));
+			}
+		}
+
+		// invalidate cache for all course keys
+		const keys = await redisCache.keys("course:*");
+		if (keys.length > 0) {
+			await redisCache.del(keys);
+		}
+
+		return res.status(200).json({
+			success: true,
+			message: "Your answer has been added successfully",
+			payload: course,
+		});
+	} catch (err: any) {
+		logger.error(`Error adding answer: ${err.message}`);
 		return next(err);
 	}
 });
