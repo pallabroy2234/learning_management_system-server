@@ -1,4 +1,4 @@
-import {body, ValidationChain} from "express-validator";
+import {body, param, ValidationChain} from "express-validator";
 
 /**
  * @description          - validate create course request
@@ -107,7 +107,7 @@ export const createCourseValidator = [
 	body("rating").optional().isNumeric().withMessage("Rating should be a number."),
 
 	// Validate purchased count (optional)
-	body("purchased").optional().isNumeric().withMessage("Purchased count should be a number."),
+	body("purchased").optional().isNumeric().withMessage("Purchased count should be a number.")
 ];
 
 /**
@@ -120,7 +120,7 @@ export const createCourseValidator = [
 export const addQuestionValidator = [
 	body("courseId").notEmpty().withMessage("Course ID is required.").isMongoId().withMessage("Provide a valid course ID."),
 	body("contentId").notEmpty().withMessage("Content ID is required.").isMongoId().withMessage("Provide a valid content ID."),
-	body("question").notEmpty().withMessage("Question is required."),
+	body("question").notEmpty().withMessage("Question is required.")
 ];
 
 /**
@@ -133,5 +133,19 @@ export const addAnswerValidator = [
 	body("courseId").notEmpty().withMessage("Course ID is required.").isMongoId().withMessage("Provide a valid course ID."),
 	body("contentId").notEmpty().withMessage("Content ID is required.").isMongoId().withMessage("Provide a valid content ID."),
 	body("questionId").notEmpty().withMessage("Question ID is required.").isMongoId().withMessage("Provide a valid question ID."),
-	body("answer").notEmpty().withMessage("Answer is required."),
+	body("answer").notEmpty().withMessage("Answer is required.")
+];
+
+
+/**
+ * @description          - validate add review request
+ * @route                - /api/v1/course/add-review/:id
+ * @method               - PUT
+ * @access               - Private
+* */
+
+export const addReviewValidator = [
+	param("id").notEmpty().withMessage("Course Id is required.").isMongoId().withMessage("Invalid id."),
+	body("rating").notEmpty().withMessage("Rating is required.").isNumeric().withMessage("Rating should be a number."),
+	body("review").notEmpty().withMessage("Review is required.")
 ];
