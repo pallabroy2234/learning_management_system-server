@@ -1,14 +1,19 @@
 import express from "express";
 import {
-	handleAddQuestion,
+	handleAddQuestion, handleAddReview,
 	handleCreateCourse,
 	handleGetAllCourses,
 	handleGetCourseContent,
 	handleGetSingleCourse,
 	handleQuestionReply,
-	handleUpdateCourse,
+	handleUpdateCourse
 } from "../controller/course.controller";
-import {addAnswerValidator, addQuestionValidator, createCourseValidator} from "../validator/course.validator";
+import {
+	addAnswerValidator,
+	addQuestionValidator,
+	addReviewValidator,
+	createCourseValidator
+} from "../validator/course.validator";
 import {runValidator} from "../validator";
 import {authorizeRole, isAuthenticated} from "../middleware/auth";
 import {upload} from "../middleware/multer";
@@ -96,3 +101,12 @@ courseRoute.put("/add-question", isAuthenticated, addQuestionValidator, runValid
 * */
 
 courseRoute.put("/add-answer", isAuthenticated, addAnswerValidator, runValidator(422), handleQuestionReply);
+
+/**
+ * @description          - add review to course
+ * @route                - /api/v1/course/add-review/:id
+ * @method               - PUT
+ * @access               - Private
+* */
+
+courseRoute.put("/add-review/:id", isAuthenticated, addReviewValidator, runValidator(422), handleAddReview)
