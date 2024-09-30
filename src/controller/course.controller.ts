@@ -9,9 +9,8 @@ import {redisCache} from "../config/redis";
 import {allowedFields, filterAllowedFields} from "../service/course.service";
 import {deleteImageFromCloudinary, imageUpload} from "../utils/cloudinary";
 import {IUser} from "../model/user.model";
-import {IAddQuestionData, IQuestionReply} from "../@types/types";
+import {IAddQuestionData, IAddReview, IQuestionReply} from "../@types/types";
 import {sendMail} from "../mails/sendMail";
-import {ObjectId} from "mongodb";
 
 /**
  * @description          - create a course
@@ -32,12 +31,12 @@ export const handleCreateCourse = CatchAsyncError(async (req: Request, res: Resp
 			level: req.body.level,
 			thumbnail: {
 				public_id: "",
-				url: "",
+				url: ""
 			},
 			demoUrl: req.body.demoUrl,
 			benefits: req.body.benefits,
 			prerequisites: req.body.prerequisites,
-			courseData: [...req.body.courseData],
+			courseData: [...req.body.courseData]
 		} as ICourse;
 
 		// Handle thumbnail upload
@@ -46,7 +45,7 @@ export const handleCreateCourse = CatchAsyncError(async (req: Request, res: Resp
 		if (thumbnail) {
 			try {
 				const result = await cloudinary.uploader.upload(thumbnail.path, {
-					folder: "lms/course-thumbnail",
+					folder: "lms/course-thumbnail"
 				});
 				tempData.thumbnail.public_id = result.public_id;
 				tempData.thumbnail.url = result.secure_url;
@@ -71,7 +70,7 @@ export const handleCreateCourse = CatchAsyncError(async (req: Request, res: Resp
 
 		return res.status(201).json({
 			success: true,
-			message: "Course created successfully",
+			message: "Course created successfully"
 		});
 	} catch (err: any) {
 		logger.error(`Error creating course: ${err.message}`);
@@ -105,7 +104,7 @@ export const handleUpdateCourse = CatchAsyncError(async (req: Request, res: Resp
 
 		let tempData = {
 			public_id: "",
-			url: "",
+			url: ""
 		};
 
 		/**
@@ -126,14 +125,14 @@ export const handleUpdateCourse = CatchAsyncError(async (req: Request, res: Resp
 		if (thumbnail) {
 			const result = await imageUpload({
 				path: thumbnail.path,
-				folder: "lms/course-thumbnail",
+				folder: "lms/course-thumbnail"
 			});
 			if (result instanceof ErrorHandler) {
 				return next(result);
 			}
 			tempData = {
 				public_id: result.public_id,
-				url: result.url,
+				url: result.url
 			};
 		}
 
@@ -142,10 +141,10 @@ export const handleUpdateCourse = CatchAsyncError(async (req: Request, res: Resp
 			{
 				$set: {
 					...updateField,
-					thumbnail: tempData,
-				},
+					thumbnail: tempData
+				}
 			},
-			{new: true},
+			{new: true}
 		);
 		if (!update) {
 			return next(new ErrorHandler("Failed to update course", 400));
@@ -159,7 +158,7 @@ export const handleUpdateCourse = CatchAsyncError(async (req: Request, res: Resp
 
 		return res.status(200).json({
 			success: true,
-			message: "Updated successfully",
+			message: "Updated successfully"
 		});
 	} catch (err: any) {
 		logger.error(`Error updating course: ${err.message}`);
@@ -184,7 +183,7 @@ export const handleGetSingleCourse = CatchAsyncError(async (req: Request, res: R
 			course = JSON.parse(data!);
 		} else {
 			course = await Course.findById(courseId).select(
-				"-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links",
+				"-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links"
 			);
 
 			if (!course) {
@@ -196,7 +195,7 @@ export const handleGetSingleCourse = CatchAsyncError(async (req: Request, res: R
 		return res.status(200).json({
 			success: true,
 			message: "Course retrieved successfully",
-			payload: course,
+			payload: course
 		});
 	} catch (err: any) {
 		logger.error(`Error getting course: ${err.message}`);
@@ -230,7 +229,7 @@ export const handleGetAllCourses = CatchAsyncError(async (req: Request, res: Res
 		return res.status(200).json({
 			success: true,
 			message: "Courses retrieved successfully",
-			payload: course || [],
+			payload: course || []
 		});
 	} catch (err: any) {
 		logger.error(`Error getting all courses: ${err.message}`);
@@ -274,7 +273,7 @@ export const handleGetCourseContent = CatchAsyncError(async (req: Request, res: 
 		return res.status(200).json({
 			success: true,
 			message: "Course data retrieved successfully",
-			payload: content,
+			payload: content
 		});
 	} catch (err: any) {
 		logger.error(`Error getting course data: ${err.message}`);
@@ -307,7 +306,7 @@ export const handleAddQuestion = CatchAsyncError(async (req: Request, res: Respo
 		const newQuestion: any = {
 			user: user._id,
 			question,
-			questionReplies: [],
+			questionReplies: []
 		};
 
 		courseContent.questions.push(newQuestion);
@@ -326,7 +325,7 @@ export const handleAddQuestion = CatchAsyncError(async (req: Request, res: Respo
 		return res.status(200).json({
 			success: true,
 			message: "Question added successfully",
-			payload: course,
+			payload: course
 		});
 	} catch (err: any) {
 		logger.error(`Error adding question: ${err.message}`);
@@ -340,7 +339,7 @@ export const handleAddQuestion = CatchAsyncError(async (req: Request, res: Respo
  * @method               - PUT
  * @access               - Private
  *
-* */
+ * */
 export const handleQuestionReply = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const {answer, courseId, contentId, questionId} = req.body as IQuestionReply;
@@ -349,7 +348,7 @@ export const handleQuestionReply = CatchAsyncError(async (req: Request, res: Res
 
 		const course: any = await Course.findById(courseId).populate({
 			path: "courseData.questions.user",
-			select: "name email",
+			select: "name email"
 		});
 
 		if (!course) {
@@ -369,18 +368,15 @@ export const handleQuestionReply = CatchAsyncError(async (req: Request, res: Res
 		//    create new answer
 		const newAnswer: any = {
 			user: user._id,
-			answer,
+			answer
 		};
 
 		question.questionReplies?.push(newAnswer);
-
-
 
 		const updatedCourse = await course.save();
 		if (!updatedCourse) {
 			return next(new ErrorHandler("Failed to add answer", 400));
 		}
-
 
 		console.log(user._id.toString() === question.user._id.toString());
 
@@ -389,7 +385,7 @@ export const handleQuestionReply = CatchAsyncError(async (req: Request, res: Res
 		} else {
 			const data = {
 				name: question.user.name,
-				title: courseContent.title,
+				title: courseContent.title
 			};
 
 			try {
@@ -397,7 +393,7 @@ export const handleQuestionReply = CatchAsyncError(async (req: Request, res: Res
 					email: question.user.email,
 					subject: "Question Reply",
 					data,
-					template: "question-reply",
+					template: "question-reply"
 				});
 			} catch (err: any) {
 				logger.error(`Error sending email: ${err.message}`);
@@ -414,10 +410,78 @@ export const handleQuestionReply = CatchAsyncError(async (req: Request, res: Res
 		return res.status(200).json({
 			success: true,
 			message: "Your answer has been added successfully",
-			payload: course,
+			payload: course
 		});
 	} catch (err: any) {
 		logger.error(`Error adding answer: ${err.message}`);
+		return next(err);
+	}
+});
+
+
+
+/**
+ * @description          - add review to course
+ * @route                - /api/v1/course/add-review/:id
+ * @method               - PUT
+ * @access               - Private
+* */
+export const handleAddReview = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const {review, rating} = req.body as IAddReview;
+		const user = req.user as IUser;
+		const courseId = req.params.id;
+
+		// check if user purchased the course  || if purchased then add review
+		const courseExists = user.courses.some((course: any) => course._id.toString() === courseId.toString());
+
+		if (!courseExists) {
+			return next(new ErrorHandler("You need to buy this course before leaving a review.", 400));
+		}
+
+		const course = await Course.findById(courseId);
+		if (!course) {
+			return next(new ErrorHandler("Course not exists", 400));
+		}
+
+		const newReview: any = {
+			user: user,
+			rating: rating,
+			review: review
+		};
+
+		course.reviews.push(newReview);
+
+		// 	calculating average rating
+		let initial = 0;
+		course.reviews.forEach((review: any) => {
+			initial += review.rating;
+		});
+		course.rating = initial / course.reviews.length;
+
+
+		// 	save course
+		const save = await course.save();
+		if (!save) {
+			return next(new ErrorHandler("Failed to add review", 400));
+		}
+
+
+		// 	prepared  notification message
+		const notification = {
+			title: "New Review Received",
+			message: `${user.name} has given a review on ${course.name}`
+		};
+
+		// create notification
+
+		return res.status(200).json({
+			success: true,
+			message: "Thanks for your review!",
+			payload: course
+		});
+	} catch (err: any) {
+		logger.error(`Error adding review: ${err.message}`);
 		return next(err);
 	}
 });
