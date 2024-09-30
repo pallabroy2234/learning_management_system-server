@@ -55,3 +55,8 @@ export interface IQuestionReply{
 	contentId: string;
 	questionId: string;
 }
+
+export interface IAddReview{
+	review: string;
+	rating: number;
+}
