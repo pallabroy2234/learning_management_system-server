@@ -149,3 +149,17 @@ export const addReviewValidator = [
 	body("rating").notEmpty().withMessage("Rating is required.").isNumeric().withMessage("Rating should be a number."),
 	body("review").notEmpty().withMessage("Review is required.")
 ];
+
+
+/**
+ * @description          - validate review reply request
+ * @route                - /api/v1/course/review-reply
+ * @method               - PUT
+ * @access               - Private(only access by admin)
+* */
+
+export const validateReviewReply = [
+	body("courseId").notEmpty().withMessage("Course ID is required.").isMongoId().withMessage("Provide a valid course ID."),
+	body("reviewId").notEmpty().withMessage("Review ID is required.").isMongoId().withMessage("Provide a valid review ID."),
+	body("reply").notEmpty().withMessage("Reply is required.")
+];
