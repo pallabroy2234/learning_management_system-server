@@ -4,9 +4,12 @@ import {Schema, ObjectId, model, Model ,Document} from "mongoose";
 // * interface for order
 
 export interface IOrder extends Document{
+	_id:ObjectId,
     courseId:ObjectId,
 	userId:ObjectId,
 	payment_info:Object,
+	createdAt:Date,
+	updatedAt:Date
 }
 
 

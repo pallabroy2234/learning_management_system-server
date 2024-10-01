@@ -1,10 +1,13 @@
 import {Schema, ObjectId, model, Model, Document} from "mongoose";
 
 export interface INotification extends Document {
+	_id: ObjectId,
 	title: string,
 	message: string,
 	status: "read" | "unread",
 	userId: ObjectId,
+	createdAt: Date,
+	updatedAt: Date
 }
 
 
