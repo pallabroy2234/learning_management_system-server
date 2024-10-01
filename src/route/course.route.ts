@@ -5,14 +5,14 @@ import {
 	handleGetAllCourses,
 	handleGetCourseContent,
 	handleGetSingleCourse,
-	handleQuestionReply,
+	handleQuestionReply, handleReviewReply,
 	handleUpdateCourse
 } from "../controller/course.controller";
 import {
 	addAnswerValidator,
 	addQuestionValidator,
 	addReviewValidator,
-	createCourseValidator
+	createCourseValidator, validateReviewReply
 } from "../validator/course.validator";
 import {runValidator} from "../validator";
 import {authorizeRole, isAuthenticated} from "../middleware/auth";
@@ -110,3 +110,12 @@ courseRoute.put("/add-answer", isAuthenticated, addAnswerValidator, runValidator
 * */
 
 courseRoute.put("/add-review/:id", isAuthenticated, addReviewValidator, runValidator(422), handleAddReview)
+
+/**
+ * @description          - handle review reply
+ * @route                - /api/v1/course/review-reply
+ * @method               - PUT
+ * @access               - Private(only access by admin)
+* */
+
+courseRoute.put("/review-reply", isAuthenticated, authorizeRole("admin"), validateReviewReply, runValidator(422), handleReviewReply)
