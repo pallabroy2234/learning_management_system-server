@@ -60,3 +60,9 @@ export interface IAddReview{
 	review: string;
 	rating: number;
 }
+
+export interface IReviewReply{
+	courseId: string;
+	reviewId: string;
+	reply:string;
+}
