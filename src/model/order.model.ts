@@ -1,12 +1,12 @@
-import {Schema, ObjectId, model, Model ,Document} from "mongoose";
+import {Schema, model, Model, Document, Types} from "mongoose";
 
 
 // * interface for order
 
 export interface IOrder extends Document{
-	_id:ObjectId,
-    courseId:ObjectId,
-	userId:ObjectId,
+	_id:Types.ObjectId,
+    courseId:Types.ObjectId,
+	userId:Types.ObjectId,
 	payment_info:Object,
 	createdAt:Date,
 	updatedAt:Date
