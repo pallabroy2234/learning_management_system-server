@@ -3,13 +3,13 @@ import {ErrorHandler} from "../utils/ErrorHandler";
 import {v2 as cloudinary} from "cloudinary";
 import {CatchAsyncError} from "../middleware/catchAsyncError";
 import logger from "../config/logger";
-import {Course, ICourse} from "../model/course.model";
+import {Course, ICourse, IReview} from "../model/course.model";
 import {deleteImage} from "../middleware/multer";
 import {redisCache} from "../config/redis";
 import {allowedFields, filterAllowedFields} from "../service/course.service";
 import {deleteImageFromCloudinary, imageUpload} from "../utils/cloudinary";
 import {IUser} from "../model/user.model";
-import {IAddQuestionData, IAddReview, IQuestionReply} from "../@types/types";
+import {IAddQuestionData, IAddReview, IQuestionReply, IReviewReply} from "../@types/types";
 import {sendMail} from "../mails/sendMail";
 
 /**
@@ -419,13 +419,12 @@ export const handleQuestionReply = CatchAsyncError(async (req: Request, res: Res
 });
 
 
-
 /**
  * @description          - add review to course
  * @route                - /api/v1/course/add-review/:id
  * @method               - PUT
  * @access               - Private
-* */
+ * */
 export const handleAddReview = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const {review, rating} = req.body as IAddReview;
@@ -448,6 +447,7 @@ export const handleAddReview = CatchAsyncError(async (req: Request, res: Respons
 			user: user,
 			rating: rating,
 			review: review
+
 		};
 
 		course.reviews.push(newReview);
@@ -482,6 +482,70 @@ export const handleAddReview = CatchAsyncError(async (req: Request, res: Respons
 		});
 	} catch (err: any) {
 		logger.error(`Error adding review: ${err.message}`);
+		return next(err);
+	}
+});
+
+
+/**
+ * @description          - handle review reply
+ * @route                - /api/v1/course/review-reply
+ * @method               - PUT
+ * @access               - Private(only reply admin)
+* */
+export const handleReviewReply = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const {reply, reviewId, courseId} = req.body as IReviewReply;
+		const user = req.user as IUser;
+
+		const course = await Course.findById(courseId).populate({
+			path: "reviews.user",
+			select: "name email avatar role createdAt updatedAt	"
+		}) as ICourse;
+
+		// 	check if course exists or not
+		if (!course) {
+			return next(new ErrorHandler("Course not exists", 404));
+		}
+
+		const review = course.reviews.find((item: any) => item._id.toString() === reviewId.toString());
+		if (!review) {
+			return next(new ErrorHandler("Review not exists", 404));
+		}
+
+		const newReply: any = {
+			user: user._id,
+			reply: reply
+		};
+
+		review.reviewReplies.push(newReply);
+
+		const updatedCourse = await course.save();
+		if (!updatedCourse) {
+			return next(new ErrorHandler("Failed to add review reply", 400));
+		}
+
+		// * Re-populate the review replies with the user information for the reply
+		await updatedCourse.populate({
+			path: "reviews.reviewReplies.user",
+			select: "name email avatar role createdAt updatedAt"
+		});
+
+		// invalidate cache for all course keys
+		const keys = await redisCache.keys("course:*");
+		if (keys.length > 0) {
+			await redisCache.del(keys);
+		}
+
+
+		return res.status(200).json({
+			success: true,
+			message: "Reply added successfully",
+			payload: course
+		});
+	} catch (err: any) {
+		console.log(err);
+		logger.error(`Error adding review reply: ${err.message}`);
 		return next(err);
 	}
 });
