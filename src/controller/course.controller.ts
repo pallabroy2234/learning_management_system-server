@@ -378,7 +378,7 @@ export const handleQuestionReply = CatchAsyncError(async (req: Request, res: Res
 			return next(new ErrorHandler("Failed to add answer", 400));
 		}
 
-		console.log(user._id.toString() === question.user._id.toString());
+
 
 		if (user._id.toString() === question.user._id.toString()) {
 			// 	create notification
