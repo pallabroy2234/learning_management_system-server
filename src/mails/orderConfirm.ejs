@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .header {
+            background-color: #4CAF50;
+            padding: 10px;
+            text-align: center;
+            color: #fff;
+            border-radius: 8px 8px 0 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 20px;
+            text-align: center;
+        }
+        .content h2 {
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+        .order-details {
+            text-align: left;
+            margin-top: 20px;
+        }
+        .order-details p {
+            font-size: 16px;
+            line-height: 1.5;
+            margin: 5px 0;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 14px;
+            color: #777;
+        }
+        .footer a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Order Confirmation</h1>
+    </div>
+    <div class="content">
+        <h2>Thank you for your purchase, <%= name %>!</h2>
+        <p>We are pleased to confirm your order. Below are the details of your purchase:</p>
+        <div class="order-details">
+            <p><strong>Order ID:</strong> <%= _id %></p>
+            <p><strong>Course Price:</strong> $<%= price %></p>
+            <p><strong>Order Date:</strong> <%= date %></p>
+        </div>
+    </div>
+    <div class="footer">
+        <p>If you have any questions, feel free to <a href="mailto:support@yourcompany.com">contact us</a>.</p>
+        <p>&copy; 2024 Pallab Roy Tushar. All rights reserved.</p>
+    </div>
+</div>
+</body>
+</html>
