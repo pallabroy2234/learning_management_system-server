@@ -392,6 +392,11 @@ export const handleQuestionReply = CatchAsyncError(async (req: Request, res: Res
 
 		if (user._id.toString() === question.user._id.toString()) {
 			// 	create notification
+			await Notification.create({
+				userId: new Types.ObjectId(user._id),
+				title: "You got a reply",
+				message: `${user.name} has replied on your answer on ${courseContent.title}`
+			});
 		} else {
 			const data = {
 				name: question.user.name,
@@ -411,8 +416,8 @@ export const handleQuestionReply = CatchAsyncError(async (req: Request, res: Res
 			}
 		}
 
-		// invalidate cache for all course keys
-		const keys = await redisCache.keys("course:*");
+		// invalidate cache for all course keys and also notification keys
+		const keys = [...(await redisCache.keys("course:*")), ...(await redisCache.keys("notification:*"))];
 		if (keys.length > 0) {
 			await redisCache.del(keys);
 		}
