@@ -447,7 +447,7 @@ export const handleAddReview = CatchAsyncError(async (req: Request, res: Respons
 		const courseId = req.params.id;
 
 		// check if user purchased the course  || if purchased then add review
-		const courseExists = user.courses.some((course: any) => course._id.toString() === courseId.toString());
+		const courseExists = user.courses.some((course: any) => course.courseId.toString() === courseId.toString());
 
 		if (!courseExists) {
 			return next(new ErrorHandler("You need to buy this course before leaving a review.", 400));
@@ -459,36 +459,41 @@ export const handleAddReview = CatchAsyncError(async (req: Request, res: Respons
 		}
 
 		const newReview: any = {
-			user: user,
+			user: user._id,
 			rating: rating,
 			review: review
-
 		};
 
 		course.reviews.push(newReview);
 
-		// 	calculating average rating
-		let initial = 0;
-		course.reviews.forEach((review: any) => {
-			initial += review.rating;
+
+		// Calculate the new average rating
+		const totalRatings = course.reviews.reduce((acc: number, curr: any) => acc + curr.rating, 0);
+		const averageRating = course.rating = totalRatings / course.reviews.length;
+
+		// Use Math.floor to round down to nearest 0.5
+		course.rating = Math.floor(averageRating * 2) / 2;
+
+		const updateCourse = await course.save();
+
+		await updateCourse.populate({
+			path: "reviews.user",
+			select: "name email avatar role createAt updatedAt"
 		});
-		course.rating = initial / course.reviews.length;
 
+		//  create notification for admin
+		await Notification.create({
+			userId: new Types.ObjectId(user._id),
+			title: "Review Received",
+			message: `${user.name} has reviewed ${course.name}`
+		});
 
-		// 	save course
-		const save = await course.save();
-		if (!save) {
-			return next(new ErrorHandler("Failed to add review", 400));
+		// invalidate cache for all course keys and also notification keys
+		const keys = [...(await redisCache.keys("course:*")), ...(await redisCache.keys("notification:*"))];
+		if (keys.length > 0) {
+			await redisCache.del(keys);
 		}
 
-
-		// 	prepared  notification message
-		const notification = {
-			title: "New Review Received",
-			message: `${user.name} has given a review on ${course.name}`
-		};
-
-		// create notification
 
 		return res.status(200).json({
 			success: true,
