@@ -5,6 +5,8 @@ import {Notification} from "../model/notification.model";
 import {redisCache} from "../config/redis";
 import mongoose from "mongoose";
 import {ErrorHandler} from "../utils/ErrorHandler";
+import cron from "node-cron";
+import moment from "moment";
 
 
 /**
@@ -83,5 +85,20 @@ export const handleUpdateNotificationStatus = CatchAsyncError(async (req: Reques
 		(err: any) {
 		logger.error(`Error in handleUpdateNotificationStatus: ${err.message}`);
 		return next(err);
+	}
+});
+
+
+/**
+ * @description     Delete every 30 days old read notifications automatically using cron job
+
+ * */
+cron.schedule("0 0 * * *", async () => {
+	const thirtyDaysAgo = moment().subtract(30, "days").toDate();
+	try {
+		await Notification.deleteMany({status: "read", createdAt: {$lte: thirtyDaysAgo}});
+		logger.info("Cron job executed successfully");
+	} catch (error: any) {
+		logger.error(`Error executing cron job: ${error.message}`);
 	}
 });
