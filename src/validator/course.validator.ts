@@ -142,11 +142,14 @@ export const addAnswerValidator = [
  * @route                - /api/v1/course/add-review/:id
  * @method               - PUT
  * @access               - Private
-* */
+ * */
 
 export const addReviewValidator = [
 	param("id").notEmpty().withMessage("Course Id is required.").isMongoId().withMessage("Invalid id."),
-	body("rating").notEmpty().withMessage("Rating is required.").isNumeric().withMessage("Rating should be a number."),
+	body("rating").notEmpty().withMessage("Rating is required.").isFloat({
+		min: 0,
+		max: 5
+	}).withMessage("Rating should be between 0 and 5."),
 	body("review").notEmpty().withMessage("Review is required.")
 ];
 
@@ -156,7 +159,7 @@ export const addReviewValidator = [
  * @route                - /api/v1/course/review-reply
  * @method               - PUT
  * @access               - Private(only access by admin)
-* */
+ * */
 
 export const validateReviewReply = [
 	body("courseId").notEmpty().withMessage("Course ID is required.").isMongoId().withMessage("Provide a valid course ID."),
