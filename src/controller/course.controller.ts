@@ -11,6 +11,8 @@ import {deleteImageFromCloudinary, imageUpload} from "../utils/cloudinary";
 import {IUser} from "../model/user.model";
 import {IAddQuestionData, IAddReview, IQuestionReply, IReviewReply} from "../@types/types";
 import {sendMail} from "../mails/sendMail";
+import {Notification} from "../model/notification.model";
+import {Types} from "mongoose";
 
 /**
  * @description          - create a course
@@ -316,8 +318,17 @@ export const handleAddQuestion = CatchAsyncError(async (req: Request, res: Respo
 			return next(new ErrorHandler("Failed to add question", 400));
 		}
 
-		// invalidate cache for all course keys
-		const keys = await redisCache.keys("course:*");
+
+		//  create notification for admin
+		await Notification.create({
+			userId: new Types.ObjectId(user._id),
+			title: "New Question Received",
+			message: `${user.name} has asked a question on ${courseContent.title}`
+		});
+
+
+		// invalidate cache for all course keys and also notification keys
+		const keys = [...(await redisCache.keys("course:*")), ...(await redisCache.keys("notification:*"))];
 		if (keys.length > 0) {
 			await redisCache.del(keys);
 		}
@@ -377,7 +388,6 @@ export const handleQuestionReply = CatchAsyncError(async (req: Request, res: Res
 		if (!updatedCourse) {
 			return next(new ErrorHandler("Failed to add answer", 400));
 		}
-
 
 
 		if (user._id.toString() === question.user._id.toString()) {
@@ -492,7 +502,7 @@ export const handleAddReview = CatchAsyncError(async (req: Request, res: Respons
  * @route                - /api/v1/course/review-reply
  * @method               - PUT
  * @access               - Private(only reply admin)
-* */
+ * */
 export const handleReviewReply = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const {reply, reviewId, courseId} = req.body as IReviewReply;
