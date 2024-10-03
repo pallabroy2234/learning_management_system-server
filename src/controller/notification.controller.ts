@@ -3,14 +3,15 @@ import {Request, Response, NextFunction} from "express";
 import logger from "../config/logger";
 import {Notification} from "../model/notification.model";
 import {redisCache} from "../config/redis";
-
+import mongoose from "mongoose";
+import {ErrorHandler} from "../utils/ErrorHandler";
 
 
 /**
-* @description     Get all notifications
-* @route           GET /api/notification/get-notifications
-* @access          Private(only admin)
-* */
+ * @description     Get all notifications
+ * @route           GET /api/notification/get-notifications
+ * @access          Private(only admin)
+ * */
 export const handleGetNotifications = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const cacheKey = "notification:all";
@@ -33,6 +34,54 @@ export const handleGetNotifications = CatchAsyncError(async (req: Request, res: 
 		});
 	} catch (err: any) {
 		logger.error(`Error in handleGetNotifications: ${err.message}`);
+		return next(err);
+	}
+});
+
+
+/**
+ * @description     Update notification status
+ * @route           PUT /api/notification/update-status/:id
+ * @access          Private(only admin)
+ * */
+export const handleUpdateNotificationStatus = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const {id} = req.params as {id: string};
+
+		if (!mongoose.isValidObjectId(id)) {
+			return next(new ErrorHandler("Invalid id", 400));
+		}
+
+
+		const cacheKey = `notification:all`;
+		const notification = await Notification.findById({_id: id});
+
+
+		if (!notification) {
+			return next(new ErrorHandler("Notification not exists", 404));
+		}
+
+		if (notification.status === "unread") {
+			notification.status = "read";
+			const updateNotification = await notification.save();
+
+			if (!updateNotification) {
+				return next(new ErrorHandler("Error in updating notification", 400));
+			}
+
+			//   invalidate cache
+			const keys = await redisCache.keys(cacheKey);
+			if (keys.length > 0) {
+				await redisCache.del(keys);
+			}
+		}
+		return res.status(200).json({
+			success: true,
+			message: "Successfully updated notification status"
+		});
+	} catch
+		(err: any) {
+		logger.error(`Error in handleUpdateNotificationStatus: ${err.message}`);
 		return next(err);
 	}
 });
