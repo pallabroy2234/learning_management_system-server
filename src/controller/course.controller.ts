@@ -295,6 +295,15 @@ export const handleAddQuestion = CatchAsyncError(async (req: Request, res: Respo
 		const {question, courseId, contentId} = req.body as IAddQuestionData;
 		const user = req.user as IUser;
 
+		//  if user role is "user" than check if user purchased the course or not | if user role is "admin" then allow all
+		if (user.role === "user") {
+			const courseExists = user.courses.some((course: any) => course.courseId.toString() === courseId.toString());
+			if (!courseExists) {
+				return next(new ErrorHandler("You need to buy this course before leaving a question.", 400));
+			}
+		}
+
+
 		const course = await Course.findById(courseId);
 		if (!course) {
 			return next(new ErrorHandler("Course not exists", 404));
@@ -354,17 +363,27 @@ export const handleAddQuestion = CatchAsyncError(async (req: Request, res: Respo
 export const handleQuestionReply = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const {answer, courseId, contentId, questionId} = req.body as IQuestionReply;
-
 		const user = req.user as IUser;
+
 
 		const course: any = await Course.findById(courseId).populate({
 			path: "courseData.questions.user",
-			select: "name email"
+			select: "name email avatar role createdAt updatedAt"
 		});
 
 		if (!course) {
 			return next(new ErrorHandler("Course not exists", 404));
 		}
+
+
+		//  if user role is "user" than check if user purchased the course or not | if user role is "admin" then allow all
+		if (user.role === "user") {
+			const courseExists = user.courses.some((course: any) => course.courseId.toString() === courseId.toString());
+			if (!courseExists) {
+				return next(new ErrorHandler("You need to buy this course before leaving a question reply.", 400));
+			}
+		}
+
 
 		const courseContent = course?.courseData.find((item: any) => item._id.toString() === contentId.toString());
 		if (!courseContent) {
@@ -376,7 +395,7 @@ export const handleQuestionReply = CatchAsyncError(async (req: Request, res: Res
 			return next(new ErrorHandler("Question not exists", 404));
 		}
 
-		//    create new answer
+		// create new answer
 		const newAnswer: any = {
 			user: user._id,
 			answer
@@ -385,6 +404,13 @@ export const handleQuestionReply = CatchAsyncError(async (req: Request, res: Res
 		question.questionReplies?.push(newAnswer);
 
 		const updatedCourse = await course.save();
+		// * Re-populate the question replies with the user information for the reply
+		await updatedCourse.populate({
+			path: "courseData.questions.questionReplies.user",
+			select: "name email avatar role createdAt updatedAt"
+		});
+
+
 		if (!updatedCourse) {
 			return next(new ErrorHandler("Failed to add answer", 400));
 		}
@@ -446,17 +472,21 @@ export const handleAddReview = CatchAsyncError(async (req: Request, res: Respons
 		const user = req.user as IUser;
 		const courseId = req.params.id;
 
-		// check if user purchased the course  || if purchased then add review
-		const courseExists = user.courses.some((course: any) => course.courseId.toString() === courseId.toString());
-
-		if (!courseExists) {
-			return next(new ErrorHandler("You need to buy this course before leaving a review.", 400));
-		}
 
 		const course = await Course.findById(courseId);
 		if (!course) {
 			return next(new ErrorHandler("Course not exists", 400));
 		}
+
+
+		//  if user role is "user" than check if user purchased the course or not | if user role is "admin" then allow all
+		if (user.role === "user") {
+			const courseExists = user.courses.some((course: any) => course.courseId.toString() === courseId.toString());
+			if (!courseExists) {
+				return next(new ErrorHandler("You need to buy this course before leaving a review.", 400));
+			}
+		}
+
 
 		const newReview: any = {
 			user: user._id,
