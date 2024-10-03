@@ -2,7 +2,6 @@ import {Document, Schema, ObjectId, model} from "mongoose";
 import {IUser} from "./user.model";
 
 
-
 interface IComment extends Document {
 	// user: object;
 	user: IUser;
@@ -85,8 +84,8 @@ const reviewSchema = new Schema<IReview>({
 				type: Schema.Types.ObjectId,
 				ref: "User"
 			},
-		    reply:{
-				type: String,
+			reply: {
+				type: String
 			}
 		}
 	]
@@ -222,9 +221,9 @@ const courseSchema = new Schema<ICourse>({
 			}
 		}
 	],
-	reviews:{
-		type:[reviewSchema],
-		default:[]
+	reviews: {
+		type: [reviewSchema],
+		default: []
 	},
 	courseData: [courseDataSchema],
 	rating: {
@@ -235,7 +234,7 @@ const courseSchema = new Schema<ICourse>({
 		type: Number,
 		default: 0
 	}
-});
+}, {timestamps: true});
 
 
 export const Course = model<ICourse>("Course", courseSchema);
