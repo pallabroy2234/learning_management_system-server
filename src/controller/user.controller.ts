@@ -342,8 +342,9 @@ export const handleUpdateUserInfo = CatchAsyncError(async (req: Request, res: Re
 		// invalidate cache
 		const userCacheKey = `user:${updateUserInfo._id}`;
 		await redisCache.set(userCacheKey, JSON.stringify(updateUserInfo));
-		if (await redisCache.exists("user:all")) {
-			await redisCache.del("user:all");
+		const keys = await redisCache.keys("user:admin-*");
+		if (keys.length > 0) {
+			await redisCache.del(keys);
 		}
 
 
@@ -505,9 +506,9 @@ export const handleUpdateAvatar = CatchAsyncError(async (req: Request, res: Resp
 		// cache update
 		const userCacheKey = `user:${user._id}`;
 		await redisCache.set(userCacheKey, JSON.stringify(updateAvatar));
-
-		if (await redisCache.exists("user:all")) {
-			await redisCache.del("user:all");
+		const cacheKeys = await redisCache.keys("user:admin-*");
+		if (cacheKeys.length > 0) {
+			await redisCache.del(cacheKeys);
 		}
 
 
@@ -530,9 +531,11 @@ export const handleUpdateAvatar = CatchAsyncError(async (req: Request, res: Resp
  * */
 export const handleGetAllUsers = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		const cacheKey = "user:all";
-
+		const user = req.user as IUser;
+		const cacheKey = `user:admin-${user._id}`;
 		let users: IUser[] = [];
+
+
 		if (await redisCache.exists(cacheKey)) {
 			const data = await redisCache.get(cacheKey);
 			users = JSON.parse(data!);
