@@ -139,7 +139,7 @@ userRouter.post("/update-avatar", upload.single("avatar"), isAuthenticated, upda
  * @access              - Private(only admin)
  * */
 
-userRouter.get("/get-all-users", isAuthenticated, authorizeRole("admin"), handleGetAllUsers);
+userRouter.get("/get-all-users/admin", isAuthenticated, authorizeRole("admin"), handleGetAllUsers);
 
 
 
