@@ -19,6 +19,7 @@ import {jwt_activation_secret, jwt_refresh_token_secret} from "../secret/secret"
 import {v2 as cloudinary} from "cloudinary";
 import {deleteImage} from "../middleware/multer";
 import {deleteImageFromCloudinary} from "../utils/cloudinary";
+import {Types} from "mongoose";
 
 
 /**
@@ -553,3 +554,42 @@ export const handleGetAllUsers = CatchAsyncError(async (req: Request, res: Respo
 		return next(err);
 	}
 });
+
+/**
+ * @description         - Update user role
+ * @path                - /api/v1/user/update-role/admin
+ * @method              - PUT
+ * @access              - Private(only admin)
+ * */
+export const handleUpdateUserRole = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const {id, role} = req.body as {id: Types.ObjectId, role: string};
+
+		const user = await User.findById(id);
+		if (!user) {
+			return next(new ErrorHandler("User not exists", 404));
+		}
+
+		if (user.role === role) {
+			return next(new ErrorHandler(`Role already ${role}`, 400));
+		}
+		user.role = role;
+		await user.save();
+
+		// * invalidate cache
+		const userCacheKey = `user:${id}`;
+		await redisCache.set(userCacheKey, JSON.stringify(user));
+		const keys = await redisCache.keys("user:admin-*");
+		if (keys.length > 0) {
+			await redisCache.del(keys);
+		}
+		return res.status(200).json({
+			success: true,
+			message: "Role updated successfully"
+		});
+	} catch (err: any) {
+		logger.error(`handleUpdateUserRole:${err.message}`);
+		return next(err);
+	}
+});
+
