@@ -1,21 +1,21 @@
 import express from "express";
 import {
-    handleActivateUser, handleCreatePassword, handleGetUserInfo,
-    handleLogin,
-    handleLogout,
-    handleRegisterUser,
-    handleUpdateAccessToken, handleUpdateAvatar, handleUpdatePassword, handleUpdateUserInfo
+	handleActivateUser, handleCreatePassword, handleGetAllUsers, handleGetUserInfo,
+	handleLogin,
+	handleLogout,
+	handleRegisterUser,
+	handleUpdateAccessToken, handleUpdateAvatar, handleUpdatePassword, handleUpdateUserInfo
 } from "../controller/user.controller";
 import {
-    createPasswordValidator, updateAvatarValidator,
-    updatePasswordValidator,
-    updateUserInfoValidator,
-    userActiveValidator,
-    userLoginValidator,
-    userRegisterValidator
+	createPasswordValidator, updateAvatarValidator,
+	updatePasswordValidator,
+	updateUserInfoValidator,
+	userActiveValidator,
+	userLoginValidator,
+	userRegisterValidator
 } from "../validator/user.validator";
 import {runValidator} from "../validator";
-import {isAuthenticated, isLoggedOut} from "../middleware/auth";
+import {authorizeRole, isAuthenticated, isLoggedOut} from "../middleware/auth";
 import {upload} from "../middleware/multer";
 
 
@@ -30,7 +30,7 @@ export const userRouter = express.Router();
  * @handler           - handleRegisterUser
  *
  * */
-userRouter.post("/register", userRegisterValidator, runValidator(422), handleRegisterUser)
+userRouter.post("/register", userRegisterValidator, runValidator(422), handleRegisterUser);
 
 
 /**
@@ -42,7 +42,7 @@ userRouter.post("/register", userRegisterValidator, runValidator(422), handleReg
  *
  * */
 
-userRouter.post("/activate-user", userActiveValidator, runValidator(422), handleActivateUser)
+userRouter.post("/activate-user", userActiveValidator, runValidator(422), handleActivateUser);
 
 /**
  * @description       - User login route
@@ -52,7 +52,7 @@ userRouter.post("/activate-user", userActiveValidator, runValidator(422), handle
  * @handler           - handleLogin
  * */
 
-userRouter.post("/login", userLoginValidator, runValidator(422), isLoggedOut, handleLogin)
+userRouter.post("/login", userLoginValidator, runValidator(422), isLoggedOut, handleLogin);
 
 
 /**
@@ -64,7 +64,7 @@ userRouter.post("/login", userLoginValidator, runValidator(422), isLoggedOut, ha
  *
  * */
 
-userRouter.get("/logout", isAuthenticated, handleLogout)
+userRouter.get("/logout", isAuthenticated, handleLogout);
 
 
 /**
@@ -76,7 +76,7 @@ userRouter.get("/logout", isAuthenticated, handleLogout)
  *
  * */
 
-userRouter.get("/refresh", handleUpdateAccessToken)
+userRouter.get("/refresh", handleUpdateAccessToken);
 
 
 /**
@@ -86,7 +86,7 @@ userRouter.get("/refresh", handleUpdateAccessToken)
  * @access              - Private
  * */
 
-userRouter.get("/user-info", isAuthenticated, handleGetUserInfo)
+userRouter.get("/user-info", isAuthenticated, handleGetUserInfo);
 
 
 /**
@@ -96,7 +96,7 @@ userRouter.get("/user-info", isAuthenticated, handleGetUserInfo)
  * @access              - Private
  * */
 
-userRouter.put("/update-info", isAuthenticated, updateUserInfoValidator, runValidator(422), handleUpdateUserInfo)
+userRouter.put("/update-info", isAuthenticated, updateUserInfoValidator, runValidator(422), handleUpdateUserInfo);
 
 
 /**
@@ -107,7 +107,7 @@ userRouter.put("/update-info", isAuthenticated, updateUserInfoValidator, runVali
  *
  * */
 
-userRouter.put("/update-password", isAuthenticated, updatePasswordValidator, runValidator(422), handleUpdatePassword)
+userRouter.put("/update-password", isAuthenticated, updatePasswordValidator, runValidator(422), handleUpdatePassword);
 
 
 /**
@@ -118,7 +118,7 @@ userRouter.put("/update-password", isAuthenticated, updatePasswordValidator, run
  *
  * */
 
-userRouter.post("/create-password", isAuthenticated, createPasswordValidator, runValidator(422), handleCreatePassword)
+userRouter.post("/create-password", isAuthenticated, createPasswordValidator, runValidator(422), handleCreatePassword);
 
 
 /**
@@ -129,7 +129,17 @@ userRouter.post("/create-password", isAuthenticated, createPasswordValidator, ru
  *
  * */
 
-userRouter.post("/update-avatar", upload.single("avatar"), isAuthenticated, updateAvatarValidator, runValidator(422), handleUpdateAvatar)
+userRouter.post("/update-avatar", upload.single("avatar"), isAuthenticated, updateAvatarValidator, runValidator(422), handleUpdateAvatar);
+
+
+/**
+ * @description         - Get all users
+ * @path                - /api/v1/user/get-all-users
+ * @method              - GET
+ * @access              - Private(only admin)
+ * */
+
+userRouter.get("/get-all-users", isAuthenticated, authorizeRole("admin"), handleGetAllUsers);
 
 
 
