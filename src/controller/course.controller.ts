@@ -599,3 +599,37 @@ export const handleReviewReply = CatchAsyncError(async (req: Request, res: Respo
 		return next(err);
 	}
 });
+
+
+/**
+ * @description          - get all courses for admin
+ * @route                - /api/v1/course/get-courses/admin
+ * @method               - GET
+ * @access               - Private(only access by admin)
+ * */
+
+export const handleGetCoursesByAdmin = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const user = req.user as IUser;
+		const cacheKey = `course:admin-${user._id}`;
+		let courses = [];
+
+		if (await redisCache.exists(cacheKey)) {
+			const data = await redisCache.get(cacheKey);
+			courses = JSON.parse(data!);
+		} else {
+			courses = await Course.find({}).sort({createdAt: -1});
+			await redisCache.set(cacheKey, JSON.stringify(courses));
+		}
+
+
+		return res.status(200).json({
+			success: true,
+			message: "Courses retrieved successfully",
+			payload: courses || []
+		});
+	} catch (err: any) {
+		logger.error(`Error getting courses by admin: ${err.message}`);
+		return next(err);
+	}
+});
