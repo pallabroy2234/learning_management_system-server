@@ -4,12 +4,12 @@ import {
 	handleLogin,
 	handleLogout,
 	handleRegisterUser,
-	handleUpdateAccessToken, handleUpdateAvatar, handleUpdatePassword, handleUpdateUserInfo
+	handleUpdateAccessToken, handleUpdateAvatar, handleUpdatePassword, handleUpdateUserInfo, handleUpdateUserRole
 } from "../controller/user.controller";
 import {
 	createPasswordValidator, updateAvatarValidator,
 	updatePasswordValidator,
-	updateUserInfoValidator,
+	updateUserInfoValidator, updateUserRoleValidator,
 	userActiveValidator,
 	userLoginValidator,
 	userRegisterValidator
@@ -141,7 +141,14 @@ userRouter.post("/update-avatar", upload.single("avatar"), isAuthenticated, upda
 
 userRouter.get("/get-all-users/admin", isAuthenticated, authorizeRole("admin"), handleGetAllUsers);
 
+/**
+ * @description         - Update user role
+ * @path                - /api/v1/user/update-role/admin
+ * @method              - PUT
+ * @access              - Private(only admin)
+ * */
 
+userRouter.put("/update-role/admin", isAuthenticated, authorizeRole("admin"), updateUserRoleValidator, runValidator(422), handleUpdateUserRole);
 
 
 
