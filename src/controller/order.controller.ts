@@ -120,3 +120,34 @@ export const handleCreateOrder = CatchAsyncError(async (req: Request, res: Respo
 		return next(err);
 	}
 });
+
+
+/**
+ * @description     Get all orders by admin
+ * @route           GET /api/order/get-all-orders/admin
+ * @access          Private(only admin)
+ * */
+export const handleGetOrdersByAdmin = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const user = req.user as IUser;
+		const cacheKey = `order:admin-${user._id}`;
+		let orders = [] as IOrder[];
+
+		if (await redisCache.exists(cacheKey)) {
+			const data = await redisCache.get(cacheKey);
+			orders = JSON.parse(data!);
+		} else {
+			orders = await Order.find({}).sort({createdAt: -1}).populate("userId", "name email").populate("courseId", "name");
+			await redisCache.set(cacheKey, JSON.stringify(orders));
+		}
+
+		return res.status(200).json({
+			success: true,
+			message: "Successfully retrieved orders",
+			payload: orders
+		});
+	} catch (err: any) {
+		logger.error(`Error in handleGetOrdersByAdmin: ${err.message}`);
+		return next(err);
+	}
+});
