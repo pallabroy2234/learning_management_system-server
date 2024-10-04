@@ -3,7 +3,7 @@ import {
 	handleAddQuestion, handleAddReview,
 	handleCreateCourse,
 	handleGetAllCourses,
-	handleGetCourseContent,
+	handleGetCourseContent, handleGetCoursesByAdmin,
 	handleGetSingleCourse,
 	handleQuestionReply, handleReviewReply,
 	handleUpdateCourse
@@ -35,7 +35,7 @@ courseRoute.post(
 	authorizeRole("admin"),
 	createCourseValidator,
 	runValidator(422),
-	handleCreateCourse,
+	handleCreateCourse
 );
 
 /**
@@ -52,7 +52,7 @@ courseRoute.put(
 	authorizeRole("admin"),
 	createCourseValidator,
 	runValidator(422),
-	handleUpdateCourse,
+	handleUpdateCourse
 );
 
 /**
@@ -92,13 +92,12 @@ courseRoute.get("/get-course-content/:id", isAuthenticated, handleGetCourseConte
 courseRoute.put("/add-question", isAuthenticated, addQuestionValidator, runValidator(422), handleAddQuestion);
 
 
-
 /**
  * @description          - add answer to question
  * @route                - /api/v1/course/add-answer
  * @method               - PUT
  * @access               - Private
-* */
+ * */
 
 courseRoute.put("/add-answer", isAuthenticated, addAnswerValidator, runValidator(422), handleQuestionReply);
 
@@ -107,15 +106,25 @@ courseRoute.put("/add-answer", isAuthenticated, addAnswerValidator, runValidator
  * @route                - /api/v1/course/add-review/:id
  * @method               - PUT
  * @access               - Private
-* */
+ * */
 
-courseRoute.put("/add-review/:id", isAuthenticated, addReviewValidator, runValidator(422), handleAddReview)
+courseRoute.put("/add-review/:id", isAuthenticated, addReviewValidator, runValidator(422), handleAddReview);
 
 /**
  * @description          - handle review reply
  * @route                - /api/v1/course/review-reply
  * @method               - PUT
  * @access               - Private(only access by admin)
-* */
+ * */
 
-courseRoute.put("/review-reply", isAuthenticated, authorizeRole("admin"), validateReviewReply, runValidator(422), handleReviewReply)
+courseRoute.put("/review-reply", isAuthenticated, authorizeRole("admin"), validateReviewReply, runValidator(422), handleReviewReply);
+
+
+/**
+ * @description          - get all courses for admin
+ * @route                - /api/v1/course/get-all-courses/admin
+ * @method               - GET
+ * @access               - Private(admin)
+ * */
+
+courseRoute.get("/get-all-courses/admin", isAuthenticated, authorizeRole("admin"), handleGetCoursesByAdmin);
