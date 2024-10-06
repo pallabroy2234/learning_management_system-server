@@ -19,7 +19,11 @@ import {jwt_activation_secret, jwt_refresh_token_secret} from "../secret/secret"
 import {v2 as cloudinary} from "cloudinary";
 import {deleteImage} from "../middleware/multer";
 import {deleteImageFromCloudinary} from "../utils/cloudinary";
-import {Types} from "mongoose";
+import mongoose, {Types} from "mongoose";
+import {Order} from "../model/order.model";
+import {Course} from "../model/course.model";
+import {Notification} from "../model/notification.model";
+import {startSession, ObjectId} from "mongoose";
 
 
 /**
@@ -593,3 +597,82 @@ export const handleUpdateUserRole = CatchAsyncError(async (req: Request, res: Re
 	}
 });
 
+
+/**
+ * @description         - Delete user
+ * @path                - /api/v1/user/delete-user/:id
+ * @method              - DELETE
+ * @access              - Private(only admin)
+ * */
+export const handleDeleteUser = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+	const session = await startSession(); // Start session for transaction
+
+	try {
+		const {id} = req.params as {id: string};
+
+		if (!mongoose.isValidObjectId(id)) {
+			return next(new ErrorHandler("Invalid	id", 400));
+		}
+
+		// * Start transaction
+		session.startTransaction();
+
+		const user = await User.findById(id).session(session);
+		if (!user) {
+			return next(new ErrorHandler("User not found", 404));
+		}
+
+		// delete avatar from cloudinary
+
+		if (user.avatar.public_id) {
+			const deleteAvatar = await deleteImageFromCloudinary(user.avatar.public_id);
+			if (deleteAvatar instanceof ErrorHandler) {
+				return next(deleteAvatar);
+			}
+		}
+
+
+		// Delete related data in a transaction
+		await Order.deleteMany({userId: id}).session(session);
+		await Course.updateMany(
+			{},
+			{$pull: {reviews: {user: id}}}
+		).session(session);
+		await Course.updateMany(
+			{},
+			{$pull: {"courseData.$[].questions": {user: id}}}
+		).session(session);
+		await Notification.deleteMany({userId: id}).session(session);
+
+		await User.deleteOne({_id: id}).session(session);
+
+
+		// Commit the transaction
+		await session.commitTransaction();
+
+
+		// invalidate cache
+		const keys = [
+			...(await redisCache.keys("user:*")),
+			...(await redisCache.keys("notification:*")),
+			...(await redisCache.keys("order:*")),
+			...(await redisCache.keys("course:*"))
+		];
+
+		if (keys.length > 0) {
+			await redisCache.del(keys);
+		}
+
+
+		return res.status(200).json({
+			success: true,
+			message: "User deleted successfully"
+		});
+	} catch (err: any) {
+		await session.abortTransaction(); // Rollback transaction if something goes wrong
+		logger.error(`handleDeleteUser:${err.message}`);
+		return next(err);
+	} finally {
+		await session.endSession(); // End session
+	}
+});
