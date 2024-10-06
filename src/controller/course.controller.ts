@@ -327,6 +327,11 @@ export const handleAddQuestion = CatchAsyncError(async (req: Request, res: Respo
 			return next(new ErrorHandler("Failed to add question", 400));
 		}
 
+		await updatedCourse.populate({
+			path: "courseData.questions.user",
+			select: "name email avatar role createdAt updatedAt"
+		});
+
 
 		//  create notification for admin
 		await Notification.create({
