@@ -619,7 +619,7 @@ export const handleDeleteUser = CatchAsyncError(async (req: Request, res: Respon
 
 		const user = await User.findById(id).session(session);
 		if (!user) {
-			return next(new ErrorHandler("User not found", 404));
+			return next(new ErrorHandler("User not exists", 404));
 		}
 
 		// delete avatar from cloudinary
@@ -653,14 +653,15 @@ export const handleDeleteUser = CatchAsyncError(async (req: Request, res: Respon
 
 		// invalidate cache
 		const keys = [
-			...(await redisCache.keys("user:*")),
 			...(await redisCache.keys("notification:*")),
 			...(await redisCache.keys("order:*")),
 			...(await redisCache.keys("course:*"))
 		];
-
 		if (keys.length > 0) {
 			await redisCache.del(keys);
+		}
+		if (await redisCache.exists(`user:${user._id}`)) {
+			await redisCache.del(`user:${user._id}`);
 		}
 
 
