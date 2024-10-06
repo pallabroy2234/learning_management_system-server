@@ -1,6 +1,6 @@
 import express from "express";
 import {
-	handleActivateUser, handleCreatePassword, handleGetAllUsers, handleGetUserInfo,
+	handleActivateUser, handleCreatePassword, handleDeleteUser, handleGetAllUsers, handleGetUserInfo,
 	handleLogin,
 	handleLogout,
 	handleRegisterUser,
@@ -150,6 +150,12 @@ userRouter.get("/get-all-users/admin", isAuthenticated, authorizeRole("admin"), 
 
 userRouter.put("/update-role/admin", isAuthenticated, authorizeRole("admin"), updateUserRoleValidator, runValidator(422), handleUpdateUserRole);
 
+/**
+ * @description         - Delete user
+ * @path                - /api/v1/user/delete-user/:id
+ * @method              - DELETE
+ * @access              - Private(only admin)
+* */
 
-
+userRouter.delete("/delete-user/:id", isAuthenticated, authorizeRole("admin"), handleDeleteUser);
 
