@@ -1,7 +1,7 @@
 import express from "express";
 import {
 	handleAddQuestion, handleAddReview,
-	handleCreateCourse,
+	handleCreateCourse, handleDeleteCourseByAdmin,
 	handleGetAllCourses,
 	handleGetCourseContent, handleGetCoursesByAdmin,
 	handleGetSingleCourse,
@@ -128,3 +128,13 @@ courseRoute.put("/review-reply", isAuthenticated, authorizeRole("admin"), valida
  * */
 
 courseRoute.get("/get-all-courses/admin", isAuthenticated, authorizeRole("admin"), handleGetCoursesByAdmin);
+
+
+/**
+ * @description          - delete course by admin
+ * @route                - /api/v1/course/course-delete/:id
+ * @method               - DELETE
+ * @access               - Private(admin)
+ * */
+
+courseRoute.delete("/course-delete/:id", isAuthenticated, authorizeRole("admin"), handleDeleteCourseByAdmin);
