@@ -12,7 +12,7 @@ import {IUser} from "../model/user.model";
 import {IAddQuestionData, IAddReview, IQuestionReply, IReviewReply} from "../@types/types";
 import {sendMail} from "../mails/sendMail";
 import {Notification} from "../model/notification.model";
-import {Types} from "mongoose";
+import mongoose, {Types} from "mongoose";
 
 /**
  * @description          - create a course
@@ -635,6 +635,41 @@ export const handleGetCoursesByAdmin = CatchAsyncError(async (req: Request, res:
 		});
 	} catch (err: any) {
 		logger.error(`Error getting courses by admin: ${err.message}`);
+		return next(err);
+	}
+});
+
+
+/**
+ * @description          - delete course by admin
+ * @route                - /api/v1/course/delete/:id
+ * @method               - DELETE
+ * @access               - Private(only access by admin)
+ * */
+export const handleDeleteCourseByAdmin = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const {id} = req.params as {id: string};
+
+		if (!mongoose.isValidObjectId(id)) {
+			return next(new ErrorHandler("Invalid  id", 400));
+		}
+
+		const deleteCourse = await Course.findByIdAndDelete(id);
+		if (!deleteCourse) {
+			return next(new ErrorHandler("Course not exists", 404));
+		}
+
+		// invalidate cache
+		const keys = await redisCache.keys("course:*");
+		if (keys.length > 0) {
+			await redisCache.del(keys);
+		}
+		return res.status(200).json({
+			success: true,
+			message: "Course deleted successfully"
+		});
+	} catch (err: any) {
+		logger.error(`Error deleting course by admin: ${err.message}`);
 		return next(err);
 	}
 });
