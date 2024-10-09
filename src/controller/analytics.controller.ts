@@ -5,6 +5,7 @@ import {IUser, User} from "../model/user.model";
 import {redisCache} from "../config/redis";
 import {IMonthlyData, lastTwelveMonthsData} from "../utils/analytics";
 import {Course} from "../model/course.model";
+import {Order} from "../model/order.model";
 
 
 /**
@@ -64,6 +65,39 @@ export const handleGetCourseAnalytics = CatchAsyncError(async (req: Request, res
 			success: true,
 			message: "Course analytics fetched successfully",
 			payload: courseAnalytics
+		});
+	} catch (err: any) {
+		logger.error(`Error in handleGetCourseAnalytics: ${err.message}`);
+		return next(err);
+	}
+});
+
+
+/**
+ * @description        Get order analytics
+ * @route              GET /api/v1/analytics/order-analytics
+ * @method			    GET
+ * @access             Private (only admin)
+ * */
+export const handleGetOrderAnalytics = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const user = req.user as IUser;
+		const cacheKey = `analytics:order-${user._id}`;
+
+		let orderAnalytics: {lastTwelveMonths: IMonthlyData[]};
+
+		if (await redisCache.exists(cacheKey)) {
+			const data = await redisCache.get(cacheKey);
+			orderAnalytics = JSON.parse(data!);
+		} else {
+			orderAnalytics = await lastTwelveMonthsData({model: Order});
+			await redisCache.set(cacheKey, JSON.stringify(orderAnalytics));
+		}
+
+		return res.status(200).json({
+			success: true,
+			message: "Order analytics fetched successfully",
+			payload: orderAnalytics
 		});
 	} catch (err: any) {
 		logger.error(`Error in handleGetCourseAnalytics: ${err.message}`);
