@@ -16,11 +16,11 @@ interface IBannerImage extends Document {
 	url: string;
 }
 
-interface ILayout extends Document {
-	type: string;
+export interface ILayout extends Document {
+	type: "categories" | "banner" | "faq";
 	faq: IFaqItem[];
 	categories: ICategories[];
-	bannerImages: {
+	bannerImage: {
 		image: IBannerImage;
 		title: string;
 		subtitle: string;
@@ -49,13 +49,17 @@ const bannerImageSchema = new Schema<IBannerImage>({
 
 
 const layoutSchema = new Schema<ILayout>({
-	type: {type: String, required: [true, "Layout type is required"]},
+	type: {
+		type: String,
+		enum: ["categories", "banner", "faq"],
+		required: [true, "Type is required"]
+	},
 	faq: [faqSchema],
 	categories: [categoriesSchema],
-	bannerImages: {
+	bannerImage: {
 		image: bannerImageSchema,
-		title: {type: String, required: [true, "Banner title is required"]},
-		subtitle: {type: String, required: [true, "Banner subtitle is required"]}
+		title: String,
+		subtitle: String
 	}
 }, {timestamps: true});
 
