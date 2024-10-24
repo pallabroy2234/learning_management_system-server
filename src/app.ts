@@ -14,6 +14,7 @@ import {courseRoute} from "./route/course.route";
 import {orderRoute} from "./route/order.route";
 import {notificationRouter} from "./route/notificaiton.route";
 import {analyticsRoute} from "./route/analytics.route";
+import {layoutRoute} from "./route/layout.route";
 
 
 export const app = express();
@@ -45,6 +46,7 @@ app.use("/api/v1/course", courseRoute);
 app.use("/api/v1/order", orderRoute);
 app.use("/api/v1/notification", notificationRouter);
 app.use("/api/v1/analytics", analyticsRoute);
+app.use("/api/v1/layout", layoutRoute);
 
 // google auth routes
 app.get("/auth/google", handleGoogleLogin);
