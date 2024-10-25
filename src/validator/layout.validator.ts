@@ -162,3 +162,18 @@ export const updateCategoriesValidator = [
 			return true;
 		})
 ];
+
+
+/**
+ * @description       validate update banner
+ * @route 			  PUT /api/v1/layout/update-banner/:id
+ * @access            Private(Only admin)
+ * */
+export const updateBannerValidator = [
+	param("id").notEmpty().withMessage("Banner id is required").isMongoId().withMessage("Invalid id"),
+	body("type").notEmpty().withMessage("Type is required").isIn(["banner"]).withMessage("Type must be 'banner'"),
+	body("banner").optional().notEmpty().withMessage("Banner image is required"),
+	body("title").optional().notEmpty().withMessage("Banner title is required"),
+	body("subtitle").optional().notEmpty().withMessage("Banner subtitle is required")
+
+];
