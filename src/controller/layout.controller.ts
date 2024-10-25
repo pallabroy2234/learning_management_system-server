@@ -141,3 +141,76 @@ export const handleUpdateFaq = CatchAsyncError(async (req: Request, res: Respons
 		return next(err);
 	}
 });
+
+
+/**
+ * @description       update & delete categories
+ * @route 			  PUT /api/v1/layout/update-categories/:id
+ * @access            Private(Only admin)
+ * */
+export const handleUpdateCategories = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const {type, categories} = req.body as ILayout;
+		const deleted = req.body.deleted;
+		const categoriesId = req.params.id;
+
+
+		const categoriesExists = await Layout.findOne({$and: [{type}, {_id: categoriesId}]});
+		if (!categoriesExists) return next(new ErrorHandler("Categories not found", 404));
+
+
+		// title exists
+		const titleExists = categoriesExists?.categories?.filter((item) => categories?.map((item) => item.title.toLowerCase()).includes(item.title.toLowerCase()));
+		if (titleExists?.length) {
+			const title = titleExists.map((item) => item.title);
+			return next(new ErrorHandler(`Category: ${title} already exists`, 400));
+		}
+
+		// 	Check existing categories or new categories
+		const updates = categories?.filter((item) => item._id);
+		const newCategories = categories?.filter((item) => !item._id);
+
+
+		// update existing categories
+		if (updates?.length) {
+			await Promise.all(updates.map(async (item) => {
+				await Layout.updateOne({$and: [{type, _id: categoriesId, "categories._id": item._id}]}, {
+					$set: {
+						"categories.$.title": item.title
+					}
+				});
+			}));
+		}
+
+		// add new categories
+		if (newCategories?.length) {
+			categoriesExists.categories.push(...newCategories);
+			await categoriesExists.save();
+		}
+
+
+		// delete categories
+		if (deleted?.length) {
+			const deleteCategories = await Layout.updateOne({
+				$and: [{
+					type,
+					_id: categoriesId,
+					"categories._id": {$in: deleted}
+				}]
+			}, {
+				$pull: {categories: {_id: {$in: deleted}}}
+			});
+			if (deleteCategories.modifiedCount === 0) return next(new ErrorHandler("Categories not found", 404));
+		}
+
+
+		return res.status(200).json({
+			success: true,
+			message: "Categories updated successfully"
+		});
+	} catch (err: any) {
+		logger.error(`Error in handleUpdateCategories: ${err.message}`);
+		return next(err);
+	}
+});
+
