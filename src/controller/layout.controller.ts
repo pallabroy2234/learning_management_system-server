@@ -86,18 +86,19 @@ export const handleCreateLayout = CatchAsyncError(async (req: Request, res: Resp
 export const handleUpdateFaq = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const {type, faq} = req.body as ILayout;
+		const deleted = req.body.deleted;
 		const faqId = req.params.id;
 
 		const faqExists = await Layout.findOne({type, _id: faqId});
 		if (!faqExists) return next(new ErrorHandler("FAQ document not found", 404));
 
 		// 	Check existing FAQ or new FAQ
-		const updates = faq.filter((item) => item._id);
-		const newFaq = faq.filter((item) => !item._id);
+		const updates = faq?.filter((item) => item._id);
+		const newFaq = faq?.filter((item) => !item._id);
 
 
 		// updated existing FAQ
-		if (updates.length > 0) {
+		if (updates?.length > 0) {
 			await Promise.all(updates.map(async (item) => {
 				await Layout.updateOne({_id: faqId, "faq._id": item._id}, {
 					$set: {
@@ -120,11 +121,16 @@ export const handleUpdateFaq = CatchAsyncError(async (req: Request, res: Respons
 			}, {new: true, runValidators: true});
 		}
 
-		// if (deleted?.length > 0) {
-		// 	await Layout.updateOne(
-		// 		{ _id: faqId },
-		// 		{ $pull: { faq: { _id: { $in: deleted } } } }
-		// 	);
+
+		// delete FAQ
+		if (deleted?.length > 0) {
+			const deleteFaq = await Layout.updateOne({_id: faqId, "faq._id": {$in: deleted}}, {
+				$pull: {faq: {_id: {$in: deleted}}}
+			});
+			if (deleteFaq.modifiedCount === 0) {
+				return next(new ErrorHandler("FAQ document not found", 404));
+			}
+		}
 
 		return res.status(200).json({
 			success: true,
