@@ -119,3 +119,46 @@ export const updateFaqValidator = [
 			return true;
 		})
 ];
+
+
+/**
+ * @description       validate update categories
+ * @route 			  PUT /api/v1/layout/update-categories/:id
+ * @access            Private(Only admin)
+ * */
+
+export const updateCategoriesValidator = [
+	param("id").notEmpty().withMessage("Category id is required").isMongoId().withMessage("Invalid id"),
+	body("type").notEmpty().withMessage("Type is required").isIn(["categories"]).withMessage("Type must be 'categories'"),
+	body("categories").optional().isArray({min: 1}).withMessage("Categories must be a non-empty array").custom((value) => {
+		value.forEach((item: any) => {
+			const allowedFields = ["_id", "title"];
+			const keys = Object.keys(item);
+
+			keys.forEach((key) => {
+				if (!allowedFields.includes(key)) {
+					throw new Error(`Invalid key : ${key}`);
+				}
+			});
+			if (!item._id) {
+				if (!item.title) {
+					throw new Error("Title is required");
+				}
+			}
+		});
+		return true;
+	}),
+	body("categories.*._id").optional().isMongoId().withMessage("Invalid category id"),
+
+//  * deleted categories
+	body("deleted").optional().isArray({min: 1}).withMessage("Deleted categories must be a non-empty array"),
+	body("deleted.*").if(body("deleted").exists()).notEmpty().withMessage("Deleted category id is required").isMongoId().withMessage("Invalid id"),
+
+	body()
+		.custom((_, {req}) => {
+			if (!req.body.categories && !req.body.deleted) {
+				throw new Error("Please provide either categories to add or IDs to delete.");
+			}
+			return true;
+		})
+];
