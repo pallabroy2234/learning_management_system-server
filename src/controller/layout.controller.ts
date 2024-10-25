@@ -1,7 +1,7 @@
 import {CatchAsyncError} from "../middleware/catchAsyncError";
 import {NextFunction, Response, Request} from "express";
 import logger from "../config/logger";
-import {imageUpload} from "../utils/cloudinary";
+import {deleteImageFromCloudinary, imageUpload} from "../utils/cloudinary";
 import {ILayout, Layout} from "../model/layout.model";
 import {ErrorHandler} from "../utils/ErrorHandler";
 import {deleteImage} from "../middleware/multer";
@@ -214,3 +214,67 @@ export const handleUpdateCategories = CatchAsyncError(async (req: Request, res: 
 	}
 });
 
+/**
+ * @description       update banner
+ * @route 			  PUT /api/v1/layout/update-banner/:id
+ * @access            Private(Only admin)
+ * */
+export const handleUpdateBanner = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+		try {
+			const {type, title, subtitle} = req.body;
+			const bannerId = req.params.id;
+			const banner = req.file;
+
+
+			const bannerExists = await Layout.findOne({$and: [{type}, {_id: bannerId}]});
+			if (!bannerExists) return next(new ErrorHandler("Banner not found", 404));
+
+
+			let update: any = {};
+
+
+			// * banner image upload
+			if (bannerExists && banner) {
+				const {public_id, url} = bannerExists.bannerImage.image;
+				if (public_id && url) {
+					const deleteOldImage = await deleteImageFromCloudinary(public_id);
+					if (deleteOldImage instanceof Error) {
+						deleteImage(banner?.path || "");
+						return next(deleteOldImage);
+					}
+				}
+				if (banner) {
+					const uploadNewImage = await imageUpload({path: banner.path, folder: "lms/banner"});
+					if (uploadNewImage instanceof Error) {
+						return next(uploadNewImage);
+					}
+					update["bannerImage.image"] = {
+						public_id: uploadNewImage.public_id,
+						url: uploadNewImage.url
+					};
+
+				}
+			}
+
+
+			if (title) update["bannerImage.title"] = title;
+			if (subtitle) update["bannerImage.subtitle"] = subtitle;
+
+
+			await Layout.updateOne({$and: [{type, _id: bannerId}]}, update, {
+				new: true,
+				runValidators: true
+			});
+
+
+			return res.status(200).json({
+				success: true,
+				message: "Banner updated successfully"
+			});
+		} catch
+			(err: any) {
+			logger.error(`Error in handleUpdateBanner: ${err.message}`);
+			return next(err);
+		}
+	}
+);
