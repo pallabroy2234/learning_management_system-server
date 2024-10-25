@@ -38,7 +38,7 @@ const faqSchema = new Schema<IFaqItem>({
 
 
 const categoriesSchema = new Schema<ICategories>({
-	title: {type: String}
+	title: {type: String, unique: true}
 });
 
 
