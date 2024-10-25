@@ -84,7 +84,7 @@ export const layOutValidator = [
 export const updateFaqValidator = [
 	param("id").notEmpty().withMessage("FAQ id is required").isMongoId().withMessage("Invalid id"),
 	body("type").notEmpty().withMessage("Type is required").isIn(["faq"]).withMessage("Type must be 'faq'."),
-	body("faq").notEmpty().withMessage("FAQ is required").isArray().withMessage("FAQ must be an array").custom((value) => {
+	body("faq").optional().isArray().withMessage("FAQ must be an array").custom((value) => {
 		value.forEach((item: any) => {
 			const allowedFields = ["_id", "question", "answer"];
 			const keys = Object.keys(item);
@@ -105,5 +105,17 @@ export const updateFaqValidator = [
 		});
 		return true;
 	}),
-	body("faq.*._id").optional().isMongoId().withMessage("Invalid FAQ id")
+	body("faq.*._id").optional().isMongoId().withMessage("Invalid FAQ id"),
+
+// 	* deleted faq
+	body("deleted").optional().isArray({min: 1}).withMessage("Deleted FAQ must be a non-empty array"),
+	body("deleted.*").if(body("deleted").exists()).notEmpty().withMessage("Deleted FAQ id is required").isMongoId().withMessage("Invalid id"),
+
+	body()
+		.custom((_, {req}) => {
+			if (!req.body.faq && !req.body.deleted) {
+				throw new Error("Please provide either FAQ items to add or IDs to delete.");
+			}
+			return true;
+		})
 ];
