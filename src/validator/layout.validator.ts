@@ -1,10 +1,10 @@
-import {body} from "express-validator";
+import {body, param} from "express-validator";
 
 
 /**
  * @description       validate layout
  * @route 			  POST /api/v1/layout/create
- * 
+ *
  * */
 export const layOutValidator = [
 	body("type").notEmpty().withMessage("Type is required").isIn(["categories", "banner", "faq"]).withMessage("Type must be 'categories', 'banner', or 'faq'."),
@@ -72,4 +72,38 @@ export const layOutValidator = [
 			return true;
 		})
 
+];
+
+
+/**
+ * @description       validate update faq
+ * @route 			  PUT /api/v1/layout/update-faq/:id
+ * @access            Private(Only admin)
+ * */
+
+export const updateFaqValidator = [
+	param("id").notEmpty().withMessage("FAQ id is required").isMongoId().withMessage("Invalid id"),
+	body("type").notEmpty().withMessage("Type is required").isIn(["faq"]).withMessage("Type must be 'faq'."),
+	body("faq").notEmpty().withMessage("FAQ is required").isArray().withMessage("FAQ must be an array").custom((value) => {
+		value.forEach((item: any) => {
+			const allowedFields = ["_id", "question", "answer"];
+			const keys = Object.keys(item);
+
+			keys.forEach((key) => {
+				if (!allowedFields.includes(key)) {
+					throw new Error(`Invalid key : ${key}`);
+				}
+			});
+			if (!item._id) {
+				if (!item.question) {
+					throw new Error("Question is required");
+				}
+				if (!item.answer) {
+					throw new Error("Answer is required");
+				}
+			}
+		});
+		return true;
+	}),
+	body("faq.*._id").optional().isMongoId().withMessage("Invalid FAQ id")
 ];
