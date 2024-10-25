@@ -1,7 +1,17 @@
 import express from "express";
 import {authorizeRole, isAuthenticated} from "../middleware/auth";
-import {handleCreateLayout, handleUpdateCategories, handleUpdateFaq} from "../controller/layout.controller";
-import {layOutValidator, updateCategoriesValidator, updateFaqValidator} from "../validator/layout.validator";
+import {
+	handleCreateLayout,
+	handleUpdateBanner,
+	handleUpdateCategories,
+	handleUpdateFaq
+} from "../controller/layout.controller";
+import {
+	layOutValidator,
+	updateBannerValidator,
+	updateCategoriesValidator,
+	updateFaqValidator
+} from "../validator/layout.validator";
 import {runValidator} from "../validator";
 import {upload} from "../middleware/multer";
 
@@ -34,3 +44,12 @@ layoutRoute.put("/update-faq/:id", isAuthenticated, authorizeRole("admin"), upda
  * */
 
 layoutRoute.put("/update-categories/:id", isAuthenticated, authorizeRole("admin"), updateCategoriesValidator, runValidator(400), handleUpdateCategories);
+
+
+/**
+ * @description       update banner
+ * @route 			  PUT /api/v1/layout/update-banner/:id
+ * @access            Private(Only admin)
+ * */
+
+layoutRoute.put("/update-banner/:id", upload.single("banner"), isAuthenticated, authorizeRole("admin"), updateBannerValidator, runValidator(400), handleUpdateBanner);
