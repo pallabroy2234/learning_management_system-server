@@ -1,12 +1,13 @@
 import express from "express";
 import {authorizeRole, isAuthenticated} from "../middleware/auth";
 import {
-	handleCreateLayout,
+	handleCreateLayout, handleGetLayout,
 	handleUpdateBanner,
 	handleUpdateCategories,
 	handleUpdateFaq
 } from "../controller/layout.controller";
 import {
+	getLayoutValidator,
 	layOutValidator,
 	updateBannerValidator,
 	updateCategoriesValidator,
@@ -53,3 +54,12 @@ layoutRoute.put("/update-categories/:id", isAuthenticated, authorizeRole("admin"
  * */
 
 layoutRoute.put("/update-banner/:id", upload.single("banner"), isAuthenticated, authorizeRole("admin"), updateBannerValidator, runValidator(400), handleUpdateBanner);
+
+
+/**
+ * @description	      get layout
+ * @route 			  GET /api/v1/layout/get-layout
+ * @access            Public
+ * */
+
+layoutRoute.get("/get-layout", getLayoutValidator, runValidator(400), handleGetLayout);
