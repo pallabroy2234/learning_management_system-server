@@ -5,6 +5,7 @@ import {deleteImageFromCloudinary, imageUpload} from "../utils/cloudinary";
 import {ILayout, Layout} from "../model/layout.model";
 import {ErrorHandler} from "../utils/ErrorHandler";
 import {deleteImage} from "../middleware/multer";
+import {redisCache} from "../config/redis";
 
 
 /**
@@ -46,6 +47,10 @@ export const handleCreateLayout = CatchAsyncError(async (req: Request, res: Resp
 			if (!layout) {
 				return next(new Error("Failed to upload banner"));
 			}
+
+			// 	* update cache
+			const keys = `layout-${type}`;
+			await redisCache.set(keys, JSON.stringify(layout), "EX", 60 * 60 * 24 * 7); // 7 days
 		}
 
 		// * create faq for layout
@@ -55,6 +60,9 @@ export const handleCreateLayout = CatchAsyncError(async (req: Request, res: Resp
 				return next(new Error("Failed to create faq"));
 			}
 
+			// * update cache
+			const key = `layout-${type}`;
+			await redisCache.set(key, JSON.stringify(result), "EX", 60 * 60 * 24 * 7); // 7 days
 		}
 
 
@@ -64,6 +72,10 @@ export const handleCreateLayout = CatchAsyncError(async (req: Request, res: Resp
 			if (!result) {
 				return next(new Error("Failed to create categories"));
 			}
+
+			// 	update cache
+			const key = `layout-${type}`;
+			await redisCache.set(key, JSON.stringify(result), "EX", 60 * 60 * 24 * 7); // 7 days
 		}
 
 		return res.status(201).json({
@@ -131,6 +143,13 @@ export const handleUpdateFaq = CatchAsyncError(async (req: Request, res: Respons
 				return next(new ErrorHandler("FAQ document not found", 404));
 			}
 		}
+
+
+		const layout = await Layout.findOne({type, _id: faqId});
+
+		// * update cache
+		const key = `layout-${type}`;
+		await redisCache.set(key, JSON.stringify(layout), "EX", 60 * 60 * 24 * 7); // 7 days
 
 		return res.status(200).json({
 			success: true,
@@ -203,10 +222,17 @@ export const handleUpdateCategories = CatchAsyncError(async (req: Request, res: 
 			if (deleteCategories.modifiedCount === 0) return next(new ErrorHandler("Categories not found", 404));
 		}
 
+		const layout = await Layout.findOne({$and: [{type}, {_id: categoriesId}]});
+
+		// * update cache
+		const key = `layout-${type}`;
+		await redisCache.set(key, JSON.stringify(layout), "EX", 60 * 60 * 24 * 7); // 7 days
+
 
 		return res.status(200).json({
 			success: true,
-			message: "Categories updated successfully"
+			message: "Categories updated successfully",
+			payload: layout
 		});
 	} catch (err: any) {
 		logger.error(`Error in handleUpdateCategories: ${err.message}`);
@@ -261,10 +287,15 @@ export const handleUpdateBanner = CatchAsyncError(async (req: Request, res: Resp
 			if (subtitle) update["bannerImage.subtitle"] = subtitle;
 
 
-			await Layout.updateOne({$and: [{type, _id: bannerId}]}, update, {
+			const layout = await Layout.findOneAndUpdate({$and: [{type, _id: bannerId}]}, update, {
 				new: true,
 				runValidators: true
 			});
+
+
+			//  update cache
+			const key = `layout-${type}`;
+			await redisCache.set(key, JSON.stringify(layout), "EX", 60 * 60 * 24 * 7); // 7 days
 
 
 			return res.status(200).json({
@@ -288,9 +319,18 @@ export const handleUpdateBanner = CatchAsyncError(async (req: Request, res: Resp
 export const handleGetLayout = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const {type} = req.body;
-		const layout = await Layout.findOne({type});
+		const key = `layout-${type}`;
 
-		if (!layout) return next(new ErrorHandler(`${type} not found`, 404));
+		let layout: any = {};
+
+		if (await redisCache.exists(key)) {
+			const data = await redisCache.get(key);
+			layout = JSON.parse(data!);
+		} else {
+			layout = await Layout.findOne({type});
+			await redisCache.set(key, JSON.stringify(layout), "EX", 60 * 60 * 24 * 7); // 7 days
+			if (!layout) return next(new ErrorHandler(`${type} not found`, 404));
+		}
 
 		return res.status(200).json({
 			success: true,
