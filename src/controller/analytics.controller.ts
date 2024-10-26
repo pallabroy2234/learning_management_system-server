@@ -26,7 +26,7 @@ export const handleGetUserAnalytics = CatchAsyncError(async (req: Request, res: 
 			userAnalytics = JSON.parse(data!);
 		} else {
 			userAnalytics = await lastTwelveMonthsData({model: User});
-			await redisCache.set(cacheKey, JSON.stringify(userAnalytics));
+			await redisCache.set(cacheKey, JSON.stringify(userAnalytics), "EX", 60 * 60 * 24 * 7); // 7 days
 		}
 
 		return res.status(200).json({
@@ -58,7 +58,7 @@ export const handleGetCourseAnalytics = CatchAsyncError(async (req: Request, res
 			courseAnalytics = JSON.parse(data!);
 		} else {
 			courseAnalytics = await lastTwelveMonthsData({model: Course});
-			await redisCache.set(cacheKey, JSON.stringify(courseAnalytics));
+			await redisCache.set(cacheKey, JSON.stringify(courseAnalytics), "EX", 60 * 60 * 24 * 7); // 7 days
 		}
 
 		return res.status(200).json({
@@ -91,7 +91,7 @@ export const handleGetOrderAnalytics = CatchAsyncError(async (req: Request, res:
 			orderAnalytics = JSON.parse(data!);
 		} else {
 			orderAnalytics = await lastTwelveMonthsData({model: Order});
-			await redisCache.set(cacheKey, JSON.stringify(orderAnalytics));
+			await redisCache.set(cacheKey, JSON.stringify(orderAnalytics), "EX", 60 * 60 * 24 * 7); // 7 days
 		}
 
 		return res.status(200).json({
