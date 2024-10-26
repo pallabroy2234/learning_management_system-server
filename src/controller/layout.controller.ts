@@ -278,3 +278,27 @@ export const handleUpdateBanner = CatchAsyncError(async (req: Request, res: Resp
 		}
 	}
 );
+
+/**
+ * @description	      get layout
+ * @route 			  GET /api/v1/layout/get-layout
+ * @access            Public
+ * */
+
+export const handleGetLayout = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const {type} = req.body;
+		const layout = await Layout.findOne({type});
+
+		if (!layout) return next(new ErrorHandler(`${type} not found`, 404));
+
+		return res.status(200).json({
+			success: true,
+			message: `${type} fetched successfully`,
+			payload: layout
+		});
+	} catch (err: any) {
+		logger.error(`Error in handleGetLayout: ${err.message}`);
+		return next(err);
+	}
+});
