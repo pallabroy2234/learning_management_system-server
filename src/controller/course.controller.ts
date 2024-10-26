@@ -64,11 +64,12 @@ export const handleCreateCourse = CatchAsyncError(async (req: Request, res: Resp
 			return next(new ErrorHandler("Failed to create course", 400));
 		}
 
-		// invalidate cache for all course keys
-		const keys = await redisCache.keys("course:*");
-		if (keys.length > 0) {
-			await redisCache.del(keys);
+		// invalidate cache
+		const key = [...(await redisCache.keys("course:*")), ...(await redisCache.keys("analytics:course-*"))];
+		if (key.length > 0) {
+			await redisCache.del(key);
 		}
+
 
 		return res.status(201).json({
 			success: true,
@@ -183,6 +184,7 @@ export const handleGetSingleCourse = CatchAsyncError(async (req: Request, res: R
 		if (await redisCache.exists(cacheKey)) {
 			const data = await redisCache.get(cacheKey);
 			course = JSON.parse(data!);
+			console.log(course);
 		} else {
 			course = await Course.findById(courseId).select(
 				"-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links"
@@ -192,7 +194,7 @@ export const handleGetSingleCourse = CatchAsyncError(async (req: Request, res: R
 				return next(new ErrorHandler("Course not found", 404));
 			}
 			// store in cache
-			await redisCache.set(cacheKey, JSON.stringify(course));
+			await redisCache.set(cacheKey, JSON.stringify(course), "EX", 60 * 60 * 24 * 7); // 7 days
 		}
 		return res.status(200).json({
 			success: true,
@@ -225,9 +227,9 @@ export const handleGetAllCourses = CatchAsyncError(async (req: Request, res: Res
 				.sort({createdAt: -1});
 
 			// store in cache
-			await redisCache.set(cacheKey, JSON.stringify(course));
+			await redisCache.set(cacheKey, JSON.stringify(course), "EX", 60 * 60 * 24 * 7); // 7 days
 		}
-		console.log(course);
+
 		return res.status(200).json({
 			success: true,
 			message: "Courses retrieved successfully",
@@ -253,7 +255,7 @@ export const handleGetCourseContent = CatchAsyncError(async (req: Request, res: 
 		const cacheKey = `course:${courseId}-${user._id}:content`;
 
 		const courseExists = user.courses.some((course: any) => course._id.toString() === courseId.toString());
-		console.log(courseExists);
+
 
 		if (!courseExists) {
 			return next(new ErrorHandler("You need to purchase this course to access it", 400));
@@ -270,7 +272,7 @@ export const handleGetCourseContent = CatchAsyncError(async (req: Request, res: 
 			}
 			content = course?.courseData;
 			// 		store in cache
-			await redisCache.set(cacheKey, JSON.stringify(content));
+			await redisCache.set(cacheKey, JSON.stringify(content), "EX", 60 * 60 * 24 * 7); // 7 days
 		}
 		return res.status(200).json({
 			success: true,
@@ -320,17 +322,12 @@ export const handleAddQuestion = CatchAsyncError(async (req: Request, res: Respo
 			questionReplies: []
 		};
 
-		courseContent.questions.push(newQuestion);
+		courseContent.questions.unshift(newQuestion);
 
 		const updatedCourse = await course.save();
 		if (!updatedCourse) {
 			return next(new ErrorHandler("Failed to add question", 400));
 		}
-
-		await updatedCourse.populate({
-			path: "courseData.questions.user",
-			select: "name email avatar role createdAt updatedAt"
-		});
 
 
 		//  create notification for admin
@@ -347,10 +344,11 @@ export const handleAddQuestion = CatchAsyncError(async (req: Request, res: Respo
 			await redisCache.del(keys);
 		}
 
+
 		return res.status(200).json({
 			success: true,
 			message: "Question added successfully",
-			payload: course
+			payload: updatedCourse
 		});
 	} catch (err: any) {
 		logger.error(`Error adding question: ${err.message}`);
@@ -370,11 +368,7 @@ export const handleQuestionReply = CatchAsyncError(async (req: Request, res: Res
 		const {answer, courseId, contentId, questionId} = req.body as IQuestionReply;
 		const user = req.user as IUser;
 
-
-		const course: any = await Course.findById(courseId).populate({
-			path: "courseData.questions.user",
-			select: "name email avatar role createdAt updatedAt"
-		});
+		const course = await Course.findById(courseId);
 
 		if (!course) {
 			return next(new ErrorHandler("Course not exists", 404));
@@ -409,11 +403,6 @@ export const handleQuestionReply = CatchAsyncError(async (req: Request, res: Res
 		question.questionReplies?.push(newAnswer);
 
 		const updatedCourse = await course.save();
-		// * Re-populate the question replies with the user information for the reply
-		await updatedCourse.populate({
-			path: "courseData.questions.questionReplies.user",
-			select: "name email avatar role createdAt updatedAt"
-		});
 
 
 		if (!updatedCourse) {
@@ -499,7 +488,7 @@ export const handleAddReview = CatchAsyncError(async (req: Request, res: Respons
 			review: review
 		};
 
-		course.reviews.push(newReview);
+		course.reviews.unshift(newReview);
 
 
 		// Calculate the new average rating
@@ -511,10 +500,6 @@ export const handleAddReview = CatchAsyncError(async (req: Request, res: Respons
 
 		const updateCourse = await course.save();
 
-		await updateCourse.populate({
-			path: "reviews.user",
-			select: "name email avatar role createAt updatedAt"
-		});
 
 		//  create notification for admin
 		await Notification.create({
@@ -533,7 +518,7 @@ export const handleAddReview = CatchAsyncError(async (req: Request, res: Respons
 		return res.status(200).json({
 			success: true,
 			message: "Thanks for your review!",
-			payload: course
+			payload: updateCourse
 		});
 	} catch (err: any) {
 		logger.error(`Error adding review: ${err.message}`);
@@ -553,10 +538,7 @@ export const handleReviewReply = CatchAsyncError(async (req: Request, res: Respo
 		const {reply, reviewId, courseId} = req.body as IReviewReply;
 		const user = req.user as IUser;
 
-		const course = await Course.findById(courseId).populate({
-			path: "reviews.user",
-			select: "name email avatar role createdAt updatedAt	"
-		}) as ICourse;
+		const course = await Course.findById(courseId);
 
 		// 	check if course exists or not
 		if (!course) {
@@ -580,11 +562,6 @@ export const handleReviewReply = CatchAsyncError(async (req: Request, res: Respo
 			return next(new ErrorHandler("Failed to add review reply", 400));
 		}
 
-		// * Re-populate the review replies with the user information for the reply
-		await updatedCourse.populate({
-			path: "reviews.reviewReplies.user",
-			select: "name email avatar role createdAt updatedAt"
-		});
 
 		// invalidate cache for all course keys
 		const keys = await redisCache.keys("course:*");
