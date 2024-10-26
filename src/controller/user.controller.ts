@@ -118,6 +118,13 @@ export const handleActivateUser = CatchAsyncError(async (req: Request, res: Resp
 			return next(new ErrorHandler("Something went wrong", 400));
 		}
 
+
+		// * invalidate cache
+		const analytics = await redisCache.keys("analytics:user-*");
+		if (analytics.length) {
+			await redisCache.del(analytics);
+		}
+
 		return res.status(201).json({
 			success: true,
 			message: `Account activated successfully`
@@ -169,11 +176,10 @@ export const handleLogin = CatchAsyncError(async (req: Request, res: Response, n
 		// Destructure to remove the password from the user object
 		const {password: _, ...userWithoutPassword} = isExists.toObject();
 
+		// * invalidate or update cache
 		const key = `user:${userWithoutPassword._id}`;
-		const keyExists = await redisCache.exists(key);
-		if (!keyExists) {
-			await redisCache.set(key, JSON.stringify(userWithoutPassword));
-		}
+		await redisCache.set(key, JSON.stringify(userWithoutPassword), "EX", 60 * 60 * 24 * 7); // 7 days
+
 
 		return res.status(200).json({
 			success: true,
@@ -346,7 +352,7 @@ export const handleUpdateUserInfo = CatchAsyncError(async (req: Request, res: Re
 
 		// invalidate cache
 		const userCacheKey = `user:${updateUserInfo._id}`;
-		await redisCache.set(userCacheKey, JSON.stringify(updateUserInfo));
+		await redisCache.set(userCacheKey, JSON.stringify(updateUserInfo), "EX", 60 * 60 * 24 * 7); // 7 days
 		const keys = await redisCache.keys("user:admin-*");
 		if (keys.length > 0) {
 			await redisCache.del(keys);
@@ -510,7 +516,7 @@ export const handleUpdateAvatar = CatchAsyncError(async (req: Request, res: Resp
 
 		// cache update
 		const userCacheKey = `user:${user._id}`;
-		await redisCache.set(userCacheKey, JSON.stringify(updateAvatar));
+		await redisCache.set(userCacheKey, JSON.stringify(updateAvatar), "EX", 60 * 60 * 24 * 7); // 7 days
 		const cacheKeys = await redisCache.keys("user:admin-*");
 		if (cacheKeys.length > 0) {
 			await redisCache.del(cacheKeys);
@@ -546,7 +552,7 @@ export const handleGetAllUsers = CatchAsyncError(async (req: Request, res: Respo
 			users = JSON.parse(data!);
 		} else {
 			users = await User.find({}).sort({createdAt: -1});
-			await redisCache.set(cacheKey, JSON.stringify(users));
+			await redisCache.set(cacheKey, JSON.stringify(users), "EX", 60 * 60 * 24 * 7); // 7 days
 		}
 		return res.status(200).json({
 			success: true,
@@ -582,7 +588,7 @@ export const handleUpdateUserRole = CatchAsyncError(async (req: Request, res: Re
 
 		// * invalidate cache
 		const userCacheKey = `user:${id}`;
-		await redisCache.set(userCacheKey, JSON.stringify(user));
+		await redisCache.set(userCacheKey, JSON.stringify(user), "EX", 60 * 60 * 24 * 7); // 7 days
 		const keys = await redisCache.keys("user:admin-*");
 		if (keys.length > 0) {
 			await redisCache.del(keys);
