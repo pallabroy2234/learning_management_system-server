@@ -177,3 +177,14 @@ export const updateBannerValidator = [
 	body("subtitle").optional().notEmpty().withMessage("Banner subtitle is required")
 
 ];
+
+
+/**
+ * @description       validate get layout
+ * @route 			  GET /api/v1/layout/get
+ * @access            Public
+ * */
+
+export const getLayoutValidator = [
+	body("type").notEmpty().withMessage("Type is required").isIn(["categories", "banner", "faq"]).withMessage("Type must be 'categories', 'banner', or 'faq'.")
+];
