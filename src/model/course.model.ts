@@ -1,4 +1,4 @@
-import {Document, Schema, ObjectId, model} from "mongoose";
+import mongoose, {Document, Schema, ObjectId, model} from "mongoose";
 import {IUser} from "./user.model";
 
 
@@ -237,7 +237,77 @@ const courseSchema = new Schema<ICourse>({
 }, {timestamps: true});
 
 
+// * populate user data
+
+courseSchema.pre("find", function(this: mongoose.Query<any, IReview>, next) {
+	this.populate({
+		path: "reviews.user",
+		select: "name email avatar role createdAt updatedAt"
+	});
+	this.populate({
+		path: "reviews.reviewReplies.user",
+		select: "name email avatar role createdAt updatedAt"
+	});
+	this.populate({
+		path: "courseData.questions.user",
+		select: "name email avatar role createdAt updatedAt"
+	});
+
+	this.populate({
+		path: "courseData.questions.questionReplies.user",
+		select: "name email avatar role createdAt updatedAt"
+	});
+	next();
+});
+
+courseSchema.pre("findOne", function(next) {
+	this.populate({
+		path: "reviews.user",
+		select: "name email avatar role createdAt updatedAt"
+	});
+	this.populate({
+		path: "reviews.reviewReplies.user",
+		select: "name email avatar role createdAt updatedAt"
+	});
+	this.populate({
+		path: "courseData.questions.user",
+		select: "name email avatar role createdAt updatedAt"
+	});
+	this.populate({
+		path: "courseData.questions.questionReplies.user",
+		select: "name email avatar role createdAt updatedAt"
+	});
+	next();
+});
+
+courseSchema.pre("save", function(next) {
+	this.populate({
+		path: "reviews.user",
+		select: "name email avatar createdAt updatedAt"
+	});
+	this.populate({
+		path: "reviews.reviewReplies.user",
+		select: "name email avatar role createdAt updatedAt"
+	});
+	this.populate({
+		path: "courseData.questions.user",
+		select: "name email avatar role createdAt updatedAt"
+	});
+	this.populate({
+		path: "courseData.questions.questionReplies.user",
+		select: "name email avatar role createdAt updatedAt"
+	});
+	next();
+});
+
+
 export const Course = model<ICourse>("Course", courseSchema);
+
+
+
+
+
+
 
 
 
