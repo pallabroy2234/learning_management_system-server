@@ -25,7 +25,7 @@ export const handleGetNotifications = CatchAsyncError(async (req: Request, res: 
 		} else {
 			notifications = await Notification.find().sort({createdAt: -1});
 			// store in cache
-			await redisCache.set(cacheKey, JSON.stringify(notifications));
+			await redisCache.set(cacheKey, JSON.stringify(notifications), "EX", 60 * 60 * 24 * 7); // 7 days
 		}
 
 
@@ -71,11 +71,10 @@ export const handleUpdateNotificationStatus = CatchAsyncError(async (req: Reques
 				return next(new ErrorHandler("Error in updating notification", 400));
 			}
 
-			//   invalidate cache
-			const keys = await redisCache.keys(cacheKey);
-			if (keys.length > 0) {
-				await redisCache.del(keys);
-			}
+
+			// update cache
+			const data = await Notification.find().sort({createdAt: -1});
+			await redisCache.set(cacheKey, JSON.stringify(data), "EX", 60 * 60 * 24 * 7);
 		}
 		return res.status(200).json({
 			success: true,
