@@ -105,10 +105,13 @@ export const handleCreateOrder = CatchAsyncError(async (req: Request, res: Respo
 		}
 
 		// + invalidate cache
-		const keys = await redisCache.keys("course*");
+		const keys = [...(await redisCache.keys("course:*")), ...(await redisCache.keys("notification:*")), ...(await redisCache.keys("analytics:order-*"))];
 		if (keys.length > 0) {
 			await redisCache.del(keys);
 		}
+		//  update user cache
+		const userCacheKey = `user:${updateUser?._id}`;
+		await redisCache.set(userCacheKey, JSON.stringify(updateUser), "EX", 60 * 60 * 24 * 7); // 7 days
 
 
 		return res.status(201).json({
@@ -137,8 +140,8 @@ export const handleGetOrdersByAdmin = CatchAsyncError(async (req: Request, res: 
 			const data = await redisCache.get(cacheKey);
 			orders = JSON.parse(data!);
 		} else {
-			orders = await Order.find({}).sort({createdAt: -1}).populate("userId", "name email").populate("courseId", "name");
-			await redisCache.set(cacheKey, JSON.stringify(orders));
+			orders = await Order.find({}).sort({createdAt: -1});
+			await redisCache.set(cacheKey, JSON.stringify(orders), "EX", 60 * 60 * 24 * 7); // 7 days
 		}
 
 		return res.status(200).json({
