@@ -5,7 +5,8 @@ dotenv.config();
 
 // * SERVER SECRET
 export const port = process.env.PORT;
-export const origin = process.env.ORIGIN;
+// export const origin = process.env.ORIGIN;
+export const origins = process.env.ORIGIN;
 export const node_env = process.env.NODE_ENV;
 export const base_url = process.env.BASE_URL;
 
