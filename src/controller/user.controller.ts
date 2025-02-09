@@ -59,7 +59,8 @@ export const handleRegisterUser = CatchAsyncError(async (req: Request, res: Resp
 
 			return res.status(201).json({
 				success: true,
-				message: `Please check your email: ${email} to activate your account`,
+				// message: `Please check your email: ${email} to activate your account`
+				message: `Activation sent to ${email}`,
 				activationCode: activationToken.token
 			});
 
