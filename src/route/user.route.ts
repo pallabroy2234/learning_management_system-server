@@ -64,7 +64,7 @@ userRouter.post("/login", userLoginValidator, runValidator(422), isLoggedOut, ha
  *
  * */
 
-userRouter.get("/logout", isAuthenticated, handleLogout);
+userRouter.post("/logout", isAuthenticated, handleLogout);
 
 
 /**
