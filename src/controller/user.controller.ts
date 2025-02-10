@@ -111,7 +111,11 @@ export const handleActivateUser = CatchAsyncError(async (req: Request, res: Resp
 		const user = await User.create({
 			name,
 			email,
-			password
+			password,
+			avatar: {
+				public_id: "",
+				url: ""
+			}
 		});
 
 		// if user not created and error occurs
