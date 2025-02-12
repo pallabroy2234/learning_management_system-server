@@ -4,8 +4,6 @@ import morgan from "morgan";
 import {errorMiddleware} from "./middleware/error";
 import cookieParser from "cookie-parser";
 import {cloud_api_key, cloud_api_secret, cloud_name, node_env, origins} from "./secret/secret";
-import passport from "./config/passport";
-import {handleGoogleCallback, handleGoogleLogin} from "./controller/google.controller";
 import {v2 as cloudinary} from "cloudinary";
 import helmet from "helmet";
 import compression from "compression";
@@ -18,7 +16,8 @@ import {orderRoute} from "./route/order.route";
 import {notificationRouter} from "./route/notificaiton.route";
 import {analyticsRoute} from "./route/analytics.route";
 import {layoutRoute} from "./route/layout.route";
-import logger from "./config/logger";
+import passportRoute from "./route/passport.route";
+import passport from "./config/passport";
 
 
 export const app = express();
@@ -206,19 +205,21 @@ const apiLimiter = rateLimit({
 
 // passport
 app.use(passport.initialize());
+// app.use(passport.session());
 
 
-// routes
+// ------------------------- routes -------------------------
 app.use("/api/v1/user", apiLimiter, userRouter);
 app.use("/api/v1/course", apiLimiter, courseRoute);
 app.use("/api/v1/order", apiLimiter, orderRoute);
 app.use("/api/v1/notification", apiLimiter, notificationRouter);
 app.use("/api/v1/analytics", apiLimiter, analyticsRoute);
 app.use("/api/v1/layout", apiLimiter, layoutRoute);
+app.use("/api/v1/user/auth", passportRoute);
 
 // google auth routes
-app.get("/auth/google", handleGoogleLogin);
-app.get("/auth/google/callback", handleGoogleCallback);
+// app.get("/auth/google", handleGoogleLogin);
+// app.get("/auth/google/callback", handleGoogleCallback);
 
 
 // * cloudinary config
