@@ -158,4 +158,3 @@ userRouter.put("/update-role/admin", isAuthenticated, authorizeRole("admin"), up
 * */
 
 userRouter.delete("/delete-user/:id", isAuthenticated, authorizeRole("admin"), handleDeleteUser);
-
