@@ -24,7 +24,7 @@ interface ITokenOptions {
 	maxAge: number,
 	httpOnly: boolean,
 	sameSite: "strict" | "lax" | "none" | undefined,
-	sucre?: boolean
+	secure?: boolean
 }
 
 
@@ -44,7 +44,7 @@ export const createToken = (user: IUser, res: Response) => {
 		maxAge: accessTokenExpiresIn * 60 * 60 * 1000,
 		httpOnly: true,
 		sameSite: "lax",
-		sucre: true
+		secure: true
 	};
 
 	// Refresh token options
@@ -57,12 +57,12 @@ export const createToken = (user: IUser, res: Response) => {
 
 	// Only set secure flag in production
 	if (node_env === "production") {
-		accessTokenOptions.sucre = true;
+		accessTokenOptions.secure = true;
 	}
 
 	res.cookie("access_token", accessToken, accessTokenOptions);
 	res.cookie("refresh_token", refreshToken, refreshTokenOptions);
-
+	
 	// Return tokens
 	return {accessToken, refreshToken};
 };
