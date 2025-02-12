@@ -13,39 +13,39 @@ import {deleteImage} from "./multer";
  * @access            - Private
  * */
 export const isAuthenticated = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
-    try {
+	try {
 
-        const access_token = req.cookies.access_token;
+		const access_token = req.cookies.access_token;
 
-        if (!access_token) {
-            return next(new ErrorHandler("Please login first", 401));
-        }
+		if (!access_token) {
+			return next(new ErrorHandler("Please login first", 401));
+		}
 
-        const decode = verify(access_token, jwt_access_token_secret as string) as JwtPayload;
+		const decode = verify(access_token, jwt_access_token_secret as string) as JwtPayload;
 
-        if (!decode) {
-            return next(new ErrorHandler("Session expired. Please log in again.", 401));
-        }
+		if (!decode) {
+			return next(new ErrorHandler("Session expired. Please log in again.", 401));
+		}
 
-        // const key = `user:${(decode as JwtPayload)._id}`;
-        // const user = await redisCache.get(key);
+		// const key = `user:${(decode as JwtPayload)._id}`;
+		// const user = await redisCache.get(key);
 
-        const user = await User.findOne({_id: decode._id})
+		const user = await User.findOne({_id: decode._id});
 
-        if (!user) {
-            return next(new ErrorHandler("User not found", 404));
-        }
+		if (!user) {
+			return next(new ErrorHandler("User not found", 404));
+		}
 
-        // set user in req object
-        req.user = user
-        next()
-    } catch (err: any) {
-        if (err.name === "TokenExpiredError") {
-            return next(new ErrorHandler("Session expired. Please log in again.", 401))
-        }
-        return next(err)
-    }
-})
+		// set user in req object
+		req.user = user;
+		next();
+	} catch (err: any) {
+		if (err.name === "TokenExpiredError") {
+			return next(new ErrorHandler("Session expired. Please log in again.", 401));
+		}
+		return next(err);
+	}
+});
 
 
 /**
@@ -54,16 +54,16 @@ export const isAuthenticated = CatchAsyncError(async (req: Request, res: Respons
  * @access            - Public
  * */
 export const isLoggedOut = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const access_token = req.cookies.access_token;
+	try {
+		const access_token = req.cookies.access_token;
 
-        if (access_token) {
-            return next(new ErrorHandler("You are already logged in", 400))
-        }
-        next();
-    } catch (error) {
-        next(error);
-    }
+		if (access_token) {
+			return next(new ErrorHandler("You are already logged in", 400));
+		}
+		next();
+	} catch (error) {
+		next(error);
+	}
 };
 
 /**
@@ -73,17 +73,17 @@ export const isLoggedOut = async (req: Request, res: Response, next: NextFunctio
  * @middleware         - authorizeRole
  * */
 export const authorizeRole = (...roles: string[]) => {
-    return (req: Request, res: Response, next: NextFunction) => {
-        if (!roles.includes((req.user as any).role || "")) {
-            // if any error and has file delete the file || image
-            if (req.file) {
-                deleteImage(req.file?.path);
-            }
-            return next(new ErrorHandler(`Forbidden. Only ${roles} can access this route`, 403))
-        }
-        next();
-    }
-}
+	return (req: Request, res: Response, next: NextFunction) => {
+		if (!roles.includes((req.user as any).role || "")) {
+			// if any error and has file delete the file || image
+			if (req.file) {
+				deleteImage(req.file?.path);
+			}
+			return next(new ErrorHandler(`Forbidden. Only ${roles} can access this route`, 403));
+		}
+		next();
+	};
+};
 
 
 // export const isAuthenticated = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
