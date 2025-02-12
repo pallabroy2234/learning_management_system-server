@@ -9,7 +9,7 @@ export const port = process.env.PORT;
 export const origins = process.env.ORIGIN;
 export const node_env = process.env.NODE_ENV;
 export const base_url = process.env.BASE_URL;
-
+export const client_base_url = process.env.CLIENT_BASE_URL;
 
 // * DATABASE SECRET
 export const db_uri = process.env.DB_URI;
