@@ -2,7 +2,7 @@ import {Request, Response, NextFunction} from "express";
 import {CatchAsyncError} from "./catchAsyncError";
 import {ErrorHandler} from "../utils/ErrorHandler";
 import {JwtPayload, verify} from "jsonwebtoken";
-import {jwt_access_token_secret} from "../secret/secret";
+import {client_base_url, jwt_access_token_secret} from "../secret/secret";
 import {User} from "../model/user.model";
 import {deleteImage} from "./multer";
 
@@ -83,6 +83,19 @@ export const authorizeRole = (...roles: string[]) => {
 		}
 		next();
 	};
+};
+
+
+// ------------------------ OAuth middleware -------------------------------->
+
+export const isOAuthLoggedIn = (req: Request, res: Response, next: NextFunction) => {
+	const accessToken = req.cookies.access_token;
+	const refreshToken = req.cookies.refresh_token;
+	if (accessToken || refreshToken) {
+		const message = encodeURIComponent("You are already logged in");
+		return res.redirect(`${client_base_url}/auth/failure?error=${message}`);
+	}
+	next();
 };
 
 
