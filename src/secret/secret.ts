@@ -47,3 +47,7 @@ export const smtp_password = process.env.SMTP_PASSWORD;
 export const google_client_id = process.env.GOOGLE_CLIENT_ID;
 export const google_client_secret = process.env.GOOGLE_CLIENT_SECRET;
 export const google_callBack_url = process.env.GOOGLE_CALLBACK_URL;
+
+// * GITHUB SECRET
+export const github_client_id = process.env.GITHUB_CLIENT_ID;
+export const github_client_secret = process.env.GITHUB_CLIENT_SECRET;
