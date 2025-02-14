@@ -155,6 +155,6 @@ userRouter.put("/update-role/admin", isAuthenticated, authorizeRole("admin"), up
  * @path                - /api/v1/user/delete-user/:id
  * @method              - DELETE
  * @access              - Private(only admin)
-* */
+ * */
 
 userRouter.delete("/delete-user/:id", isAuthenticated, authorizeRole("admin"), handleDeleteUser);
