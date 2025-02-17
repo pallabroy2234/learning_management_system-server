@@ -530,7 +530,7 @@ export const handleUpdateAvatar = CatchAsyncError(async (req: Request, res: Resp
 
 		return res.status(200).json({
 			success: true,
-			message: "Avatar updated successfully"
+			message: "Image uploaded successfully"
 		});
 	} catch (err: any) {
 		logger.error(`handleUpdateProfileImage:${err.message}`);
