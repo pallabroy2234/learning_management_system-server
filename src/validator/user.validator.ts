@@ -57,17 +57,17 @@ export const userLoginValidator = [
 
 
 export const updateUserInfoValidator = [
-	body("name").optional().isString().withMessage("Name must be a string"),
-	body("email")
-		.optional()
-		.isEmail()
-		.withMessage("Please enter a valid email")
-		.custom((value) => {
-			if (!emailRegex.test(value)) {
-				throw new Error("Please enter a valid email");
-			}
-			return true;
-		})
+	body("name").optional().trim().isString().withMessage("Name must be a string").notEmpty().withMessage("Name is required")
+	// body("email")
+// 	.optional()
+// 	.isEmail()
+// 	.withMessage("Please enter a valid email")
+// 	.custom((value) => {
+// 		if (!emailRegex.test(value)) {
+// 			throw new Error("Please enter a valid email");
+// 		}
+// 		return true;
+// 	})
 ];
 
 

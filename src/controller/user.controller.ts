@@ -315,7 +315,8 @@ export const handleGetUserInfo = CatchAsyncError(async (req: Request, res: Respo
  * */
 export const handleUpdateUserInfo = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		const allowedField: string[] = ["name", "email"];
+		// const allowedField: string[] = ["name", "email"];
+		const allowedField: string[] = ["name"];
 		const id = (req.user as IUser)._id;
 
 		const isUserExists = await User.findById(id);
@@ -330,7 +331,7 @@ export const handleUpdateUserInfo = CatchAsyncError(async (req: Request, res: Re
 			if (allowedField.includes(key)) {
 				updates[key as keyof IUpdateUserInfo] = req.body[key];
 			} else {
-				return next(new ErrorHandler(`Field: ${key} is not allowed`, 400));
+				return next(new ErrorHandler(`Field: ${key} is not allowed for updating`, 400));
 			}
 		}
 
@@ -342,12 +343,13 @@ export const handleUpdateUserInfo = CatchAsyncError(async (req: Request, res: Re
 
 
 		//  check email already exists
-		if (updates.email) {
-			const isEmailExists = await User.findOne({email: updates.email});
-			if (isEmailExists) {
-				return next(new ErrorHandler("Email already exists", 409));
-			}
-		}
+
+		// if (updates.email) {
+		// 	const isEmailExists = await User.findOne({email: updates.email});
+		// 	if (isEmailExists) {
+		// 		return next(new ErrorHandler("Email already exists", 409));
+		// 	}
+		// }
 
 		const updateUserInfo = await User.findByIdAndUpdate(id, updates, {new: true});
 		if (!updateUserInfo) {
