@@ -83,7 +83,8 @@ passport.use(new GoogleStrategy({
 				url: profile.photos?.[0].value || profile?._json?.picture || "",
 				public_id: ""
 			},
-			provider: "google"
+			provider: "google",
+			password: null
 		});
 
 		return done(null, user);
@@ -156,7 +157,8 @@ passport.use(new GitHubStrategy({
 				url: profile?.photos?.[0].value || "",
 				public_id: ""
 			},
-			provider: "github"
+			provider: "github",
+			password: null
 		});
 		return done(null, user);
 	} catch (e: any) {
