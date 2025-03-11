@@ -58,11 +58,12 @@ export const createCourseValidator = [
 
 	// * Validate course data (lessons)
 	// Validate course data (lessons)
-	body("courseData").optional().isArray().withMessage("Course content should be a list."),
+	body("courseData").isArray({min: 1}).withMessage("At least one lesson is required."),
+	// body("courseData").optional().isArray().withMessage("Course content should be a list."),
 	body("courseData.*.title").notEmpty().withMessage("Lesson title is required."),
 	body("courseData.*.videoDescription").notEmpty().withMessage("Lesson description is required."),
 	body("courseData.*.videoUrl").notEmpty().withMessage("Video URL is required.").isURL().withMessage("Provide a valid URL."),
-	body("courseData.*.videoLength").notEmpty().withMessage("Video length is required."),
+	body("courseData.*.videoLength").notEmpty().withMessage("Video length is required.").isNumeric().withMessage("Video length should be a number."),
 	body("courseData.*.videoSection").notEmpty().withMessage("Video section is required."),
 	body("courseData.*.videoPlayer").notEmpty().withMessage("Video player is required."),
 	body("courseData.*.suggestion").optional().isString().withMessage("Suggestion should be text."),
@@ -97,17 +98,19 @@ export const createCourseValidator = [
 			return true;
 		}),
 
-	body("courseData.*.links.*.url").optional().isURL().withMessage("Provide a valid link URL."), // URL validation for individual links
+	// body("courseData.*.links.*.url").optional().isURL().withMessage("Provide a valid link URL."), // URL validation for individual links
 
 	// Validate questions inside course data
-	body("courseData.*.questions").optional().isArray().withMessage("Questions should be a list."),
-	body("courseData.*.questions.*.comment").optional().isString().withMessage("Question comment should be text."),
 
-	// Validate overall rating (optional)
-	body("rating").optional().isNumeric().withMessage("Rating should be a number."),
-
-	// Validate purchased count (optional)
-	body("purchased").optional().isNumeric().withMessage("Purchased count should be a number.")
+	// ! Don't know why Validate This part .. all are optional and validate others Api I think that's why commented
+	// body("courseData.*.questions").optional().isArray().withMessage("Questions should be a list."),
+	// body("courseData.*.questions.*.comment").optional().isString().withMessage("Question comment should be text."),
+	//
+	// // Validate overall rating (optional)
+	// body("rating").optional().isNumeric().withMessage("Rating should be a number."),
+	//
+	// // Validate purchased count (optional)
+	// body("purchased").optional().isNumeric().withMessage("Purchased count should be a number.")
 ];
 
 /**
