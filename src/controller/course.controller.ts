@@ -13,6 +13,8 @@ import {IAddQuestionData, IAddReview, IQuestionReply, IReviewReply} from "../@ty
 import {sendMail} from "../mails/sendMail";
 import {Notification} from "../model/notification.model";
 import mongoose, {Types} from "mongoose";
+import axios from "axios";
+import {vdoCipher_key} from "../secret/secret";
 
 /**
  * @description          - create a course
@@ -650,3 +652,37 @@ export const handleDeleteCourseByAdmin = CatchAsyncError(async (req: Request, re
 		return next(err);
 	}
 });
+
+
+/**
+ * @description          - generate video url
+ * @route                - /api/v1/course/generate-video-url
+ * @method               - POST
+ * @access               - Private
+* */
+export const handleGenerateVideoUrl = CatchAsyncError(async (req:Request, res:Response, next:NextFunction)=> {
+	try {
+
+		const {videoId} = req.body
+		console.log(req.body.videoId);
+		const response = await axios.post(`https://dev.vdocipher.com/api/videos/${videoId}/otp`, {
+			ttl: 300
+		},{
+			headers: {
+				Accept: "application/json",
+				"Content-Type": "application/json",
+				Authorization: `Apisecret ${vdoCipher_key}`
+			}
+		})
+
+
+		res.json({
+			success: true,
+			message: "Video url generated successfully",
+			payload: response.data
+		})
+
+	}catch (e:any) {
+          return next(new ErrorHandler(e.message, 400))
+	}
+})
