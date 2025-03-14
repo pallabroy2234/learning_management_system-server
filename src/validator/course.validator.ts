@@ -35,7 +35,8 @@ export const createCourseValidator = [
 		.withMessage("Course level should be text."),
 
 	// Validate demo URL
-	body("demoUrl").notEmpty().withMessage("Demo URL is required.").isURL().withMessage("Provide a valid URL."),
+	// body("demoUrl").notEmpty().withMessage("Demo URL is required.").isURL().withMessage("Provide a valid URL."),
+	body("demoUrl").notEmpty().withMessage("Demo URL is required."),
 
 	// Validate benefits
 	body("benefits")
@@ -62,7 +63,8 @@ export const createCourseValidator = [
 	// body("courseData").optional().isArray().withMessage("Course content should be a list."),
 	body("courseData.*.title").notEmpty().withMessage("Lesson title is required."),
 	body("courseData.*.videoDescription").notEmpty().withMessage("Lesson description is required."),
-	body("courseData.*.videoUrl").notEmpty().withMessage("Video URL is required.").isURL().withMessage("Provide a valid URL."),
+	// body("courseData.*.videoUrl").notEmpty().withMessage("Video URL is required.").isURL().withMessage("Provide a valid URL."),
+	body("courseData.*.videoUrl").notEmpty().withMessage("Video URL is required."),
 	body("courseData.*.videoLength").notEmpty().withMessage("Video length is required.").isNumeric().withMessage("Video length should be a number."),
 	body("courseData.*.videoSection").notEmpty().withMessage("Video section is required."),
 	body("courseData.*.videoPlayer").notEmpty().withMessage("Video player is required."),
