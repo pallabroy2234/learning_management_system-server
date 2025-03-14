@@ -1,7 +1,7 @@
 import express from "express";
 import {
 	handleAddQuestion, handleAddReview,
-	handleCreateCourse, handleDeleteCourseByAdmin,
+	handleCreateCourse, handleDeleteCourseByAdmin, handleGenerateVideoUrl,
 	handleGetAllCourses,
 	handleGetCourseContent, handleGetCoursesByAdmin,
 	handleGetSingleCourse,
@@ -138,3 +138,12 @@ courseRoute.get("/get-all-courses/admin", isAuthenticated, authorizeRole("admin"
  * */
 
 courseRoute.delete("/course-delete/:id", isAuthenticated, authorizeRole("admin"), handleDeleteCourseByAdmin);
+
+
+/**
+ * @description          - generate video url
+ * @route                - /api/v1/course/getVdoCipherOTP
+ * @method               - POST
+* */
+
+courseRoute.post("/getVdoCipherOTP", handleGenerateVideoUrl);
