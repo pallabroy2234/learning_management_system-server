@@ -51,3 +51,9 @@ export const google_callBack_url = process.env.GOOGLE_CALLBACK_URL;
 // * GITHUB SECRET
 export const github_client_id = process.env.GITHUB_CLIENT_ID;
 export const github_client_secret = process.env.GITHUB_CLIENT_SECRET;
+
+
+// * VdoCipher SECRET
+
+
+export const vdoCipher_key = process.env.VDOCHIPER_KEY
