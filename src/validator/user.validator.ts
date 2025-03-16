@@ -129,6 +129,7 @@ export const updateAvatarValidator = [
  * */
 
 export const updateUserRoleValidator = [
-	body("id").notEmpty().withMessage("Id is required").isMongoId().withMessage("Invalid id"),
+	// body("id").notEmpty().withMessage("Id is required").isMongoId().withMessage("Invalid id"),
+	body("email").notEmpty().withMessage("Email is required").isEmail().withMessage("Please enter a valid email"),
 	body("role").notEmpty().withMessage("Role is required").isIn(["user", "admin"]).withMessage("Role must be either user or admin")
 ];
