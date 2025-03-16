@@ -652,9 +652,11 @@ export const handleGetAllUsers = CatchAsyncError(
 export const handleUpdateUserRole = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id, role } = req.body as { id: Types.ObjectId; role: string };
+      // const { id, role } = req.body as { id: Types.ObjectId; role: string };
+      const {email, role} = req.body as {email: string; role: string};
 
-      const user = await User.findById(id);
+
+      const user = await User.findOne({email});
       if (!user) {
         return next(new ErrorHandler("User not exists", 404));
       }
@@ -666,7 +668,7 @@ export const handleUpdateUserRole = CatchAsyncError(
       await user.save();
 
       // * invalidate cache
-      const userCacheKey = `user:${id}`;
+      const userCacheKey = `user:${user._id}`;
       await redisCache.set(
         userCacheKey,
         JSON.stringify(user),
