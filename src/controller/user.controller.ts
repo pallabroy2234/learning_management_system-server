@@ -747,6 +747,7 @@ export const handleDeleteUser = CatchAsyncError(
         ...(await redisCache.keys("notification:*")),
         ...(await redisCache.keys("order:*")),
         ...(await redisCache.keys("course:*")),
+        ...(await redisCache.keys("user:admin-*")),
       ];
       if (keys.length > 0) {
         await redisCache.del(keys);
