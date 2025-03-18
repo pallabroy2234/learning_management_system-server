@@ -8,8 +8,8 @@ export const allowedFields = {
     price: true,
     estimatedPrice: true,
     thumbnail: {
-        public_id: true,
-        url: true
+        url: true,
+        public_id: true
     },
     tags: true,
     level: true,

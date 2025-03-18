@@ -90,86 +90,191 @@ export const handleCreateCourse = CatchAsyncError(async (req: Request, res: Resp
  * @access               - Private(admin)
  *
  * */
+
+
 export const handleUpdateCourse = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const courseId = req.params.id;
-		const data = req.body;
-		const {result: updateField, invalidFields} = filterAllowedFields(allowedFields, data);
-
-		if (invalidFields.length > 0) {
-			return next(new ErrorHandler(`Invalid fields: ${invalidFields.join(", ")}`, 400));
-		}
-
-		const thumbnailExists = await Course.findById(courseId).select("thumbnail _id");
-		if (!thumbnailExists) {
-			return next(new ErrorHandler("Course not found", 404));
-		}
+		const { thumbnail:previousThumbnail, ...bodyWithoutThumbnail } = req.body;
 
 		const thumbnail = req.file;
 
-		let tempData = {
-			public_id: "",
-			url: ""
+		// 1. Validate Course Existence
+		const course = await Course.findById(courseId);
+		if (!course) return next(new ErrorHandler("Course not found", 404));
+
+		// 2. Initialize Update Data
+		const updateData: any = {};
+
+		// 3. Define Allowed Fields Structure
+		const allowedFields = {
+			topLevel: ['name', 'description', 'price', 'estimatedPrice', 'tags', 'level', 'demoUrl'],
+			nested: {
+				benefits: ['title'],
+				prerequisites: ['title'],
+				courseData: ['title', 'videoDescription', 'videoUrl', 'videoSection', 'videoLength', 'videoPlayer', 'links', 'suggestion']
+			}
 		};
 
-		/**
-		 * @note - Deletes the existing thumbnail if a new one is provided,
-		 *                or if no thumbnail is included in the request body.
-		 *                This ensures that the previous thumbnail is removed
-		 *                when no replacement is specified.
-		 */
-		if (thumbnail || thumbnailExists?.thumbnail.public_id) {
-			if (thumbnailExists?.thumbnail.public_id) {
-				const deleteThumbnail = await deleteImageFromCloudinary(thumbnailExists?.thumbnail.public_id);
-				if (deleteThumbnail instanceof ErrorHandler) {
-					return next(deleteThumbnail);
-				}
+		// 4. Process Top-Level Fields
+		allowedFields.topLevel.forEach(field => {
+			if (bodyWithoutThumbnail[field] !== undefined) {
+				updateData[field] = bodyWithoutThumbnail[field];
 			}
+		});
+
+		// 5. Process Nested Fields with Security Filtering
+		Object.keys(allowedFields.nested).forEach(nestedField => {
+			if (bodyWithoutThumbnail[nestedField]) {
+				updateData[nestedField] = bodyWithoutThumbnail[nestedField].map((item: any) => {
+					const filteredItem: any = {};
+					allowedFields.nested[nestedField as keyof typeof allowedFields.nested].forEach(subField => {
+						if (item[subField] !== undefined) filteredItem[subField] = item[subField];
+					});
+					return filteredItem;
+				});
+			}
+		});
+
+		// 6. Special Handling for Complex Nested Structures (Links in CourseData)
+		if (updateData.courseData) {
+			updateData.courseData = updateData.courseData.map((data: any) => ({
+				...data,
+				links: data.links?.map((link: any) => ({
+					title: link.title,
+					url: link.url
+				})) || []
+			}));
+		}
+
+
+
+		// 8. Thumbnail Management
+		if (!thumbnail && course.thumbnail?.public_id && previousThumbnail === "null") {
+			await deleteImageFromCloudinary(course.thumbnail.public_id);
+			updateData.thumbnail = null;
 		}
 
 		if (thumbnail) {
-			const result = await imageUpload({
+			if (course.thumbnail?.public_id) await deleteImageFromCloudinary(course.thumbnail.public_id);
+			const uploadResult = await imageUpload({
 				path: thumbnail.path,
 				folder: "lms/course-thumbnail"
 			});
-			if (result instanceof ErrorHandler) {
-				return next(result);
-			}
-			tempData = {
-				public_id: result.public_id,
-				url: result.url
-			};
+			if (uploadResult instanceof ErrorHandler) return next(uploadResult);
+			updateData.thumbnail = { public_id: uploadResult.public_id, url: uploadResult.url };
 		}
 
-		const update = await Course.findByIdAndUpdate(
+		// 9. Database Update with Validation
+		const updatedCourse = await Course.findByIdAndUpdate(
 			courseId,
-			{
-				$set: {
-					...updateField,
-					thumbnail: tempData
-				}
-			},
-			{new: true}
+			{ $set: updateData },
+			{ new: true, runValidators: true, context: 'query' }
 		);
-		if (!update) {
-			return next(new ErrorHandler("Failed to update course", 400));
-		}
 
-		// invalidate cache for all course keys
-		const keys = await redisCache.keys("course:*");
-		if (keys.length > 0) {
-			await redisCache.del(keys);
-		}
+		if (!updatedCourse) return next(new ErrorHandler("Failed to update course", 400));
 
-		return res.status(200).json({
+		// 10. Cache Invalidation
+		const cacheKeys = await redisCache.keys("course:*");
+		if (cacheKeys.length > 0) await redisCache.del(cacheKeys);
+
+		res.status(200).json({
 			success: true,
-			message: "Updated successfully"
+			message: "Course updated successfully",
 		});
+
 	} catch (err: any) {
-		logger.error(`Error updating course: ${err.message}`);
-		return next(err);
+		logger.error(`Course Update Error: ${err.message}`);
+		return next(new ErrorHandler(`Update Failed: ${err.message}`, 500));
 	}
 });
+
+
+
+
+
+// export const handleUpdateCourse = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+// 	try {
+// 		const courseId = req.params.id;
+//
+//
+// 		const {name, description, price,estimatedPrice,thumbnail:previousThumbnail,tags,level,demoUrl,benefits,prerequisites,courseData} = req.body
+//
+//
+//
+//
+//
+//
+// 		const thumbnailExists = await Course.findById(courseId).select("thumbnail _id");
+//
+// 		if (!thumbnailExists) {
+// 			return next(new ErrorHandler("Course not found", 404));
+// 		}
+//
+// 		const thumbnail = req.file;
+//
+// 		let tempData = {
+// 			public_id: "",
+// 			url: ""
+// 		};
+//
+// 		/**
+// 		 * @note - Deletes the existing thumbnail if a new one is provided,
+// 		 *                or if no thumbnail is included in the request body.
+// 		 *                This ensures that the previous thumbnail is removed
+// 		 *                when no replacement is specified.
+// 		 */
+// 		if (thumbnail) {
+// 			if (thumbnailExists?.thumbnail.public_id) {
+// 				const deleteThumbnail = await deleteImageFromCloudinary(thumbnailExists?.thumbnail.public_id);
+// 				if (deleteThumbnail instanceof ErrorHandler) {
+// 					return next(deleteThumbnail);
+// 				}
+// 			}
+// 		}
+//
+// 		if (thumbnail) {
+// 			const result = await imageUpload({
+// 				path: thumbnail.path,
+// 				folder: "lms/course-thumbnail"
+// 			});
+// 			if (result instanceof ErrorHandler) {
+// 				return next(result);
+// 			}
+// 			tempData = {
+// 				public_id: result.public_id,
+// 				url: result.url
+// 			};
+// 		}
+//
+// 		const update = await Course.findByIdAndUpdate(
+// 			courseId,
+// 			{
+// 				$set: {
+// 					thumbnail: tempData
+// 				}
+// 			},
+// 			{new: true}
+// 		);
+// 		if (!update) {
+// 			return next(new ErrorHandler("Failed to update course", 400));
+// 		}
+//
+// 		// invalidate cache for all course keys
+// 		const keys = await redisCache.keys("course:*");
+// 		if (keys.length > 0) {
+// 			await redisCache.del(keys);
+// 		}
+//
+// 		return res.status(200).json({
+// 			success: true,
+// 			message: "Updated successfully"
+// 		});
+// 	} catch (err: any) {
+// 		logger.error(`Error updating course: ${err.message}`);
+// 		return next(err);
+// 	}
+// });
 
 /**
  * @description          - get a single course
@@ -186,11 +291,8 @@ export const handleGetSingleCourse = CatchAsyncError(async (req: Request, res: R
 		if (await redisCache.exists(cacheKey)) {
 			const data = await redisCache.get(cacheKey);
 			course = JSON.parse(data!);
-			console.log(course);
 		} else {
-			course = await Course.findById(courseId).select(
-				"-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links"
-			);
+			course = await Course.findById(courseId);
 
 			if (!course) {
 				return next(new ErrorHandler("Course not found", 404));
@@ -208,6 +310,38 @@ export const handleGetSingleCourse = CatchAsyncError(async (req: Request, res: R
 		return next(err);
 	}
 });
+
+// export const handleGetSingleCourse = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+// 	try {
+// 		const courseId = req.params.id;
+// 		const cacheKey = `course:${courseId}`;
+//
+// 		let course;
+// 		if (await redisCache.exists(cacheKey)) {
+// 			const data = await redisCache.get(cacheKey);
+// 			course = JSON.parse(data!);
+// 			console.log(course);
+// 		} else {
+// 			course = await Course.findById(courseId).select(
+// 				"-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links"
+// 			);
+//
+// 			if (!course) {
+// 				return next(new ErrorHandler("Course not found", 404));
+// 			}
+// 			// store in cache
+// 			await redisCache.set(cacheKey, JSON.stringify(course), "EX", 60 * 60 * 24 * 7); // 7 days
+// 		}
+// 		return res.status(200).json({
+// 			success: true,
+// 			message: "Course retrieved successfully",
+// 			payload: course
+// 		});
+// 	} catch (err: any) {
+// 		logger.error(`Error getting course: ${err.message}`);
+// 		return next(err);
+// 	}
+// });
 
 /**
  * @description          - get all courses
@@ -664,7 +798,7 @@ export const handleGenerateVideoUrl = CatchAsyncError(async (req:Request, res:Re
 	try {
 
 		const {videoId} = req.body
-		console.log(req.body.videoId);
+
 		const response = await axios.post(`https://dev.vdocipher.com/api/videos/${videoId}/otp`, {
 			ttl: 300
 		},{
