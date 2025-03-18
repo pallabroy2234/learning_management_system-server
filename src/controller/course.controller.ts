@@ -276,13 +276,14 @@ export const handleUpdateCourse = CatchAsyncError(async (req: Request, res: Resp
 // 	}
 // });
 
-/**
- * @description          - get a single course
- * @route                - /api/v1/course/get-course/:id
- * @method               - GET
- * @access               - Public(only not purchased courses)
+ /**
+  * @description          - get single course by id
+  * @route                - /api/v1/course/get-course/admin/:id
+  * @method               - GET
+  * @access               - Private(admin)
+  *
  * */
-export const handleGetSingleCourse = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+export const handleGetSingleCourseAdmin = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const courseId = req.params.id;
 		const cacheKey = `course:${courseId}`;
@@ -311,37 +312,46 @@ export const handleGetSingleCourse = CatchAsyncError(async (req: Request, res: R
 	}
 });
 
-// export const handleGetSingleCourse = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
-// 	try {
-// 		const courseId = req.params.id;
-// 		const cacheKey = `course:${courseId}`;
-//
-// 		let course;
-// 		if (await redisCache.exists(cacheKey)) {
-// 			const data = await redisCache.get(cacheKey);
-// 			course = JSON.parse(data!);
-// 			console.log(course);
-// 		} else {
-// 			course = await Course.findById(courseId).select(
-// 				"-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links"
-// 			);
-//
-// 			if (!course) {
-// 				return next(new ErrorHandler("Course not found", 404));
-// 			}
-// 			// store in cache
-// 			await redisCache.set(cacheKey, JSON.stringify(course), "EX", 60 * 60 * 24 * 7); // 7 days
-// 		}
-// 		return res.status(200).json({
-// 			success: true,
-// 			message: "Course retrieved successfully",
-// 			payload: course
-// 		});
-// 	} catch (err: any) {
-// 		logger.error(`Error getting course: ${err.message}`);
-// 		return next(err);
-// 	}
-// });
+
+
+
+/**
+ * @description          - get single course by id
+ * @route                - /api/v1/course/get-course/user/:id
+ * @method               - GET
+ * @access               - Public(only not purchased courses)
+ * */
+export const handleGetSingleCourseUser = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const courseId = req.params.id;
+		const cacheKey = `course:${courseId}`;
+
+		let course;
+		if (await redisCache.exists(cacheKey)) {
+			const data = await redisCache.get(cacheKey);
+			course = JSON.parse(data!);
+			console.log(course);
+		} else {
+			course = await Course.findById(courseId).select(
+				"-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links"
+			);
+
+			if (!course) {
+				return next(new ErrorHandler("Course not found", 404));
+			}
+			// store in cache
+			await redisCache.set(cacheKey, JSON.stringify(course), "EX", 60 * 60 * 24 * 7); // 7 days
+		}
+		return res.status(200).json({
+			success: true,
+			message: "Course retrieved successfully",
+			payload: course
+		});
+	} catch (err: any) {
+		logger.error(`Error getting course: ${err.message}`);
+		return next(err);
+	}
+});
 
 /**
  * @description          - get all courses

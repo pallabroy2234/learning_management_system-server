@@ -4,7 +4,7 @@ import {
 	handleCreateCourse, handleDeleteCourseByAdmin, handleGenerateVideoUrl,
 	handleGetAllCourses,
 	handleGetCourseContent, handleGetCoursesByAdmin,
-	handleGetSingleCourse,
+	handleGetSingleCourseAdmin, handleGetSingleCourseUser,
 	handleQuestionReply, handleReviewReply,
 	handleUpdateCourse
 } from "../controller/course.controller";
@@ -55,14 +55,17 @@ courseRoute.put(
 	handleUpdateCourse
 );
 
-/**
- * @description          - get a single course
- * @route                - /api/v1/course/get-course/:id
- * @method               - GET
- * @access               - Public
- * */
 
-courseRoute.get("/get-course/:id", handleGetSingleCourse);
+/**
+ * @description          - get single course for user
+ * @route                - /api/v1/course/get-course/user/:id
+ * @method               - GET
+ * @access               - Public(only not purchased courses)
+* */
+
+
+
+courseRoute.get("/get-course/user/:id", handleGetSingleCourseUser);
 
 /**
  * @description          - get all courses
@@ -129,6 +132,17 @@ courseRoute.put("/review-reply", isAuthenticated, authorizeRole("admin"), valida
 
 courseRoute.get("/get-all-courses/admin", isAuthenticated, authorizeRole("admin"), handleGetCoursesByAdmin);
 
+
+
+/**
+ * @description          - get single course for admin
+ * @route                - /api/v1/course/get-course/admin/:id
+ * @method               - GET
+ * @access               - Private(admin)
+ *
+* */
+
+courseRoute.get("/get-course/admin/:id", isAuthenticated, authorizeRole("admin"), handleGetSingleCourseAdmin);
 
 /**
  * @description          - delete course by admin
