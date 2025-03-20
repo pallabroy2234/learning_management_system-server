@@ -1,4 +1,4 @@
-import {body, param} from "express-validator";
+import {body, param, query} from "express-validator";
 
 
 /**
@@ -186,5 +186,5 @@ export const updateBannerValidator = [
  * */
 
 export const getLayoutValidator = [
-	body("type").notEmpty().withMessage("Type is required").isIn(["categories", "banner", "faq"]).withMessage("Type must be 'categories', 'banner', or 'faq'.")
+	query("type").notEmpty().withMessage("Type is required").isIn(["categories", "banner", "faq"]).withMessage("Type must be 'categories', 'banner', or 'faq'.")
 ];
