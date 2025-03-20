@@ -318,7 +318,7 @@ export const handleUpdateBanner = CatchAsyncError(async (req: Request, res: Resp
 
 export const handleGetLayout = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		const {type} = req.body;
+		const {type} = req.query;
 		const key = `layout-${type}`;
 
 		let layout: any = {};
